@@ -290,7 +290,7 @@
     font-size: 14px;
     pointer-events: none;
   }
-  .peso-input-wrap input { padding-left: 26px !important; }
+  .peso-input-wrap input { padding-left: 40px !important; }
 
   /* LEDGER LIST */
   .day-group {
@@ -1453,13 +1453,13 @@ const CATEGORIES = [
 const peso = (n) => {
   const v = Number(n) || 0;
   const sign = v < 0 ? '-' : '';
-  return sign + '₱' + Math.abs(v).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return sign + 'AED ' + Math.abs(v).toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 const pesoShort = (n) => {
   const v = Number(n) || 0;
   const sign = v < 0 ? '-' : '';
-  return sign + '₱' + Math.abs(v).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return sign + 'AED ' + Math.abs(v).toLocaleString('en-AE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 };
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -1497,18 +1497,18 @@ const monthKey = (dateStr) => dateStr.slice(0, 7);
 
 const formatDate = (dateStr) => {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('en-AE', { month: 'short', day: 'numeric' });
 };
 
 const formatFullDate = (dateStr) => {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('en-AE', { weekday: 'short', month: 'short', day: 'numeric' });
 };
 
 const formatMonthLabel = (key) => {
   const [y, m] = key.split('-');
   const d = new Date(Number(y), Number(m) - 1, 1);
-  return d.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' });
+  return d.toLocaleDateString('en-AE', { month: 'long', year: 'numeric' });
 };
 
 const shiftMonth = (key, delta) => {
@@ -1775,11 +1775,11 @@ function App() {
 }
 
 function Header({ balance, monthSpent, monthIncome, theme, toggleTheme }) {
-  const today = new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const today = new Date().toLocaleDateString('en-AE', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   return (
     <>
       <div className="header">
-        <div className="brand"><span className="peso-mark">₱</span>era Log</div>
+        <div className="brand"><span className="peso-mark">₱</span>era Log - AED</div>
         <div className="header-right">
           <div className="header-date">{today}</div>
           <button className="theme-toggle" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
@@ -2192,7 +2192,7 @@ function HomeTab({ transactions, addTransaction, updateTransaction, deleteTransa
     const yStr = yesterday.toISOString().slice(0, 10);
     if (dateStr === today) return 'Today';
     if (dateStr === yStr) return 'Yesterday';
-    return d.toLocaleDateString('en-PH', { weekday: 'long', month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('en-AE', { weekday: 'long', month: 'short', day: 'numeric' });
   };
 
   return (
@@ -2248,7 +2248,7 @@ function HomeTab({ transactions, addTransaction, updateTransaction, deleteTransa
           <div className="form-field" style={{marginBottom: 14}}>
             <label htmlFor="counted-amount">What you counted</label>
             <div className="peso-input-wrap">
-              <span>₱</span>
+              <span>AED</span>
               <input id="counted-amount" type="number" step="0.01" min="0" placeholder="0.00" value={countedAmount} onChange={e => setCountedAmount(e.target.value)} autoFocus />
             </div>
           </div>
@@ -2298,7 +2298,7 @@ function HomeTab({ transactions, addTransaction, updateTransaction, deleteTransa
             <div className="form-field">
               <label htmlFor="amount">Amount</label>
               <div className="peso-input-wrap">
-                <span>₱</span>
+                <span>AED</span>
                 <input id="amount" type="number" step="0.01" min="0" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required autoFocus />
               </div>
             </div>
@@ -2546,7 +2546,7 @@ function BudgetsTab({ budgets, saveBudgets, dailyBudgets, saveDailyBudgets, mont
 
       <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: 0, marginBottom: 18}}>
         {isDaily
-          ? 'A fresh spending allowance for each day. Every morning this resets to ₱0 spent — yesterday\u2019s overspend or leftover does not carry over. Daily limits sit alongside your monthly budgets; both track the same expenses.'
+          ? 'A fresh spending allowance for each day. Every morning this resets to AED0 spent — yesterday\u2019s overspend or leftover does not carry over. Daily limits sit alongside your monthly budgets; both track the same expenses.'
           : 'Set a peso limit per category for the whole month. The bar fills as you spend, and turns red once you go over.'}
       </p>
 
@@ -2592,7 +2592,7 @@ function BudgetsTab({ budgets, saveBudgets, dailyBudgets, saveDailyBudgets, mont
                 {editingId === cat.id ? (
                   <div className="budget-edit-row">
                     <div className="peso-input-wrap">
-                      <span>₱</span>
+                      <span>AED</span>
                       <input type="number" min="0" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEdit(cat.id)} />
                     </div>
                     <button className="btn small" onClick={() => saveEdit(cat.id)}>Save</button>
@@ -2723,7 +2723,7 @@ function GoalsTab({ goals, saveGoals, showToast, requestDelete }) {
             <div className="form-field">
               <label htmlFor="goal-target">Target amount</label>
               <div className="peso-input-wrap">
-                <span>₱</span>
+                <span>AED</span>
                 <input id="goal-target" type="number" min="0" placeholder="5000" value={target} onChange={e => setTarget(e.target.value)} required />
               </div>
             </div>
@@ -2762,7 +2762,7 @@ function GoalsTab({ goals, saveGoals, showToast, requestDelete }) {
             ) : (
               <div className="goal-actions">
                 <div className="peso-input-wrap">
-                  <span>₱</span>
+                  <span>AED</span>
                   <input type="number" min="0" placeholder="Add amount" value={contributions[g.id] || ''} onChange={e => setContributions(c => ({ ...c, [g.id]: e.target.value }))} onKeyDown={e => e.key === 'Enter' && addFunds(g.id)} />
                 </div>
                 <button className="btn small" onClick={() => addFunds(g.id)}>Add</button>
@@ -2855,7 +2855,7 @@ function RecurringTab({ recurring, saveRecurring, addTransaction, showToast, req
             <div className="form-field">
               <label htmlFor="rec-amount">Amount</label>
               <div className="peso-input-wrap">
-                <span>₱</span>
+                <span>AED</span>
                 <input id="rec-amount" type="number" min="0" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required />
               </div>
             </div>
