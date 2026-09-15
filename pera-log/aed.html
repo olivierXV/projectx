@@ -1466,27 +1466,31 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 
 // Storage adapter: uses window.storage when available (Claude.ai artifacts),
 // falls back to localStorage when opened as a standalone HTML file.
+const STORAGE_PREFIX = "pera-log-aed:";
+
 const hasArtifactStorage = typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function';
 
 const storageAdapter = {
   async get(key) {
+    const prefixed = STORAGE_PREFIX + key;
     if (hasArtifactStorage) {
-      try { return await window.storage.get(key); }
+      try { return await window.storage.get(prefixed); }
       catch (e) { return null; }
     }
     try {
-      const raw = window.localStorage.getItem(key);
-      return raw ? { key, value: raw } : null;
+      const raw = window.localStorage.getItem(prefixed);
+      return raw ? { key: prefixed, value: raw } : null;
     } catch (e) { return null; }
   },
   async set(key, value) {
+    const prefixed = STORAGE_PREFIX + key;
     if (hasArtifactStorage) {
-      try { return await window.storage.set(key, value); }
+      try { return await window.storage.set(prefixed, value); }
       catch (e) { return null; }
     }
     try {
-      window.localStorage.setItem(key, value);
-      return { key, value };
+      window.localStorage.setItem(prefixed, value);
+      return { key: prefixed, value };
     } catch (e) { return null; }
   }
 };
