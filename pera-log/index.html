@@ -291,52 +291,6 @@
     pointer-events: none;
   }
   .peso-input-wrap input { padding-left: 26px !important; }
-  .reveal-input-wrap {
-    position: relative;
-  }
-  .reveal-input-wrap input {
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .reveal-toggle {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--green);
-    cursor: pointer;
-    padding: 4px 6px;
-  }
-  .reveal-toggle:hover { text-decoration: underline; }
-  .sync-status-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-  .sync-status-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--ink-soft);
-    flex: 0 0 auto;
-  }
-  .sync-status-dot.synced { background: var(--green); }
-  .sync-status-dot.syncing { background: var(--gold); animation: pulse-dot 1.2s ease-in-out infinite; }
-  .sync-status-dot.error { background: var(--clay); }
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  .sync-status-text {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink);
-  }
 
   /* LEDGER LIST */
   .day-group {
@@ -1224,9 +1178,6 @@
     outline-offset: 2px;
   }
 </style>
-<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -1609,124 +1560,6 @@ function toLocalDateStr(date) {
 
 const todayStr = () => toLocalDateStr(new Date());
 
-// ---- Cloud sync (Firebase) ----
-// Optional layer on top of storageAdapter: when the person links a device with
-// a sync code, data also gets written to Firestore under a hash of that code,
-// so a second device using the same code can read the same data. localStorage
-// stays the source of truth for instant, offline-safe reads; Firestore is a
-// best-effort mirror synced in the background.
-const firebaseConfig = {
-  apiKey: "AIzaSyAQNXL2YIJJBt0YzBziKMut16-JPdi8Di8",
-  authDomain: "pera-log.firebaseapp.com",
-  projectId: "pera-log",
-  appId: "1:225519178777:web:45ad93d84a6eedff7a4688",
-};
-
-const SYNC_DOC_COLLECTION = 'syncs';
-const MIN_SYNC_CODE_LENGTH = 8;
-
-async function sha256Hex(text) {
-  const enc = new TextEncoder().encode(text);
-  const digest = await crypto.subtle.digest('SHA-256', enc);
-  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Very small complexity check: long enough, and not just letters (so
-// "iloveyou" passes length but something like "password1" is nudged against).
-function syncCodeStrengthIssue(code) {
-  if (!code || code.length < MIN_SYNC_CODE_LENGTH) {
-    return `Use at least ${MIN_SYNC_CODE_LENGTH} characters.`;
-  }
-  const hasLetterAndNumberOrSymbol = /[a-zA-Z]/.test(code) && /[^a-zA-Z]/.test(code);
-  if (!hasLetterAndNumberOrSymbol) {
-    return 'Mix in a number or symbol, not just letters — e.g. adrian-baon-2026.';
-  }
-  return null;
-}
-
-const syncEngine = {
-  _app: null,
-  _auth: null,
-  _db: null,
-  _unsubscribe: null,
-  _ready: false,
-
-  isAvailable() {
-    return typeof window !== 'undefined' && typeof window.firebase !== 'undefined';
-  },
-
-  init() {
-    if (this._ready) return true;
-    if (!this.isAvailable()) return false;
-    try {
-      if (!window.firebase.apps || !window.firebase.apps.length) {
-        this._app = window.firebase.initializeApp(firebaseConfig);
-      } else {
-        this._app = window.firebase.app();
-      }
-      this._auth = window.firebase.auth();
-      this._db = window.firebase.firestore();
-      this._ready = true;
-      return true;
-    } catch (e) {
-      console.error('Firebase init failed', e);
-      return false;
-    }
-  },
-
-  // Ensures we have a signed-in anonymous user, returns the user or null.
-  async ensureAuth() {
-    if (!this.init()) return null;
-    if (this._auth.currentUser) return this._auth.currentUser;
-    try {
-      const cred = await this._auth.signInAnonymously();
-      return cred.user;
-    } catch (e) {
-      console.error('Anonymous sign-in failed', e);
-      return null;
-    }
-  },
-
-  async docRefForCode(code) {
-    const hash = await sha256Hex(code);
-    return this._db.collection(SYNC_DOC_COLLECTION).doc(hash);
-  },
-
-  // Pulls the current cloud snapshot for a code, or null if nothing is there yet.
-  async fetchSnapshot(code) {
-    const user = await this.ensureAuth();
-    if (!user) throw new Error('Could not authenticate with the sync service.');
-    const ref = await this.docRefForCode(code);
-    const snap = await ref.get();
-    return snap.exists ? snap.data() : null;
-  },
-
-  // Writes a full snapshot (all local data) up to the cloud under this code.
-  async pushSnapshot(code, data) {
-    const user = await this.ensureAuth();
-    if (!user) throw new Error('Could not authenticate with the sync service.');
-    const ref = await this.docRefForCode(code);
-    await ref.set({ ...data, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() });
-  },
-
-  // Subscribes to live changes on the synced document; calls onChange(data) on updates.
-  async subscribe(code, onChange, onError) {
-    const user = await this.ensureAuth();
-    if (!user) { if (onError) onError(new Error('Could not authenticate with the sync service.')); return () => {}; }
-    const ref = await this.docRefForCode(code);
-    if (this._unsubscribe) { this._unsubscribe(); this._unsubscribe = null; }
-    this._unsubscribe = ref.onSnapshot(
-      snap => { if (snap.exists) onChange(snap.data()); },
-      err => { console.error('Sync listener error', err); if (onError) onError(err); }
-    );
-    return this._unsubscribe;
-  },
-
-  stopSubscription() {
-    if (this._unsubscribe) { this._unsubscribe(); this._unsubscribe = null; }
-  },
-};
-
 const monthKey = (dateStr) => dateStr.slice(0, 7);
 
 const formatDate = (dateStr) => {
@@ -1855,15 +1688,12 @@ function App() {
   const [toastMsg, showToast] = useToast();
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [syncCode, setSyncCode] = useState(null);
-  const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | synced | error
-  const [syncError, setSyncError] = useState(null);
 
   // Load from storage
   useEffect(() => {
     (async () => {
       try {
-        const [txRes, budRes, dailyRes, goalRes, recRes, pinRes, themeRes, tutorialRes, syncRes] = await Promise.allSettled([
+        const [txRes, budRes, dailyRes, goalRes, recRes, pinRes, themeRes, tutorialRes] = await Promise.allSettled([
           storageAdapter.get('pera-log:transactions'),
           storageAdapter.get('pera-log:budgets'),
           storageAdapter.get('pera-log:dailyBudgets'),
@@ -1872,7 +1702,6 @@ function App() {
           storageAdapter.get('pera-log:pinnedShortcuts'),
           storageAdapter.get('pera-log:theme'),
           storageAdapter.get('pera-log:hasSeenTutorial'),
-          storageAdapter.get('pera-log:syncCode'),
         ]);
         if (txRes.status === 'fulfilled' && txRes.value) setTransactions(JSON.parse(txRes.value.value));
         if (budRes.status === 'fulfilled' && budRes.value) setBudgets(JSON.parse(budRes.value.value));
@@ -1889,9 +1718,6 @@ function App() {
         if (!hasSeenTutorial) {
           setShowTutorial(true);
           storageAdapter.set('pera-log:hasSeenTutorial', JSON.stringify(true)).catch(e => console.error(e));
-        }
-        if (syncRes.status === 'fulfilled' && syncRes.value) {
-          setSyncCode(JSON.parse(syncRes.value.value));
         }
       } catch (e) {
         console.error('Load error', e);
@@ -1937,90 +1763,6 @@ function App() {
       storageAdapter.set('pera-log:theme', JSON.stringify(next)).catch(e => console.error(e));
       return next;
     });
-  }, []);
-
-  // ---- Cloud sync wiring ----
-  // Applying a snapshot pulled from Firestore updates local state + storage
-  // without re-triggering a push back to the cloud (avoids echo loops).
-  const applyingRemoteRef = React.useRef(false);
-
-  const applyRemoteSnapshot = useCallback((data) => {
-    applyingRemoteRef.current = true;
-    if (data.transactions) { setTransactions(data.transactions); storageAdapter.set('pera-log:transactions', JSON.stringify(data.transactions)); }
-    if (data.budgets) { setBudgets(data.budgets); storageAdapter.set('pera-log:budgets', JSON.stringify(data.budgets)); }
-    if (data.dailyBudgets) { setDailyBudgets(data.dailyBudgets); storageAdapter.set('pera-log:dailyBudgets', JSON.stringify(data.dailyBudgets)); }
-    if (data.goals) { setGoals(data.goals); storageAdapter.set('pera-log:goals', JSON.stringify(data.goals)); }
-    if (data.recurring) { setRecurring(data.recurring); storageAdapter.set('pera-log:recurring', JSON.stringify(data.recurring)); }
-    if (data.pinnedShortcuts) { setPinnedShortcuts(data.pinnedShortcuts); storageAdapter.set('pera-log:pinnedShortcuts', JSON.stringify(data.pinnedShortcuts)); }
-    setTimeout(() => { applyingRemoteRef.current = false; }, 0);
-  }, []);
-
-  // Subscribe to the linked sync document whenever a code is set.
-  useEffect(() => {
-    if (!syncCode) return;
-    let cancelled = false;
-    setSyncStatus('syncing');
-    setSyncError(null);
-    syncEngine.subscribe(
-      syncCode,
-      (data) => { if (!cancelled) { applyRemoteSnapshot(data); setSyncStatus('synced'); } },
-      (err) => { if (!cancelled) { setSyncStatus('error'); setSyncError(err.message || 'Sync error'); } }
-    );
-    return () => { cancelled = true; syncEngine.stopSubscription(); };
-  }, [syncCode, applyRemoteSnapshot]);
-
-  // Debounced push: whenever local data changes (and it wasn't just applied
-  // FROM the cloud), push a fresh snapshot up, coalescing rapid edits.
-  const pushTimerRef = React.useRef(null);
-  const pushToCloud = useCallback(() => {
-    if (!syncCode || applyingRemoteRef.current) return;
-    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-    pushTimerRef.current = setTimeout(async () => {
-      try {
-        setSyncStatus('syncing');
-        await syncEngine.pushSnapshot(syncCode, {
-          transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts,
-        });
-        setSyncStatus('synced');
-        setSyncError(null);
-      } catch (e) {
-        setSyncStatus('error');
-        setSyncError(e.message || 'Could not sync');
-      }
-    }, 1200);
-  }, [syncCode, transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts]);
-
-  useEffect(() => { pushToCloud(); }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, pushToCloud]);
-
-  // Links this device to a sync code: pulls existing cloud data if present,
-  // otherwise pushes what's currently on this device as the starting point.
-  const linkDevice = useCallback(async (code) => {
-    setSyncStatus('syncing');
-    setSyncError(null);
-    try {
-      const existing = await syncEngine.fetchSnapshot(code);
-      if (existing) {
-        applyRemoteSnapshot(existing);
-      } else {
-        await syncEngine.pushSnapshot(code, { transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts });
-      }
-      setSyncCode(code);
-      await storageAdapter.set('pera-log:syncCode', JSON.stringify(code));
-      setSyncStatus('synced');
-      return { ok: true };
-    } catch (e) {
-      setSyncStatus('error');
-      setSyncError(e.message || 'Could not link this device');
-      return { ok: false, error: e.message };
-    }
-  }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, applyRemoteSnapshot]);
-
-  const unlinkDevice = useCallback(async () => {
-    syncEngine.stopSubscription();
-    setSyncCode(null);
-    setSyncStatus('idle');
-    setSyncError(null);
-    await storageAdapter.set('pera-log:syncCode', JSON.stringify(null));
   }, []);
 
   const addTransaction = (tx) => {
@@ -2152,11 +1894,6 @@ function App() {
           saveRecurring={saveRecurring}
           showToast={showToast}
           requestDelete={setConfirmDelete}
-          syncCode={syncCode}
-          syncStatus={syncStatus}
-          syncError={syncError}
-          linkDevice={linkDevice}
-          unlinkDevice={unlinkDevice}
         />
       )}
 
@@ -3439,15 +3176,9 @@ function StatsTab({ transactions }) {
   );
 }
 
-function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals, recurring, pinnedShortcuts, savePinnedShortcuts, saveTransactions, saveBudgets, saveGoals, saveRecurring, showToast, requestDelete, syncCode, syncStatus, syncError, linkDevice, unlinkDevice }) {
+function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals, recurring, pinnedShortcuts, savePinnedShortcuts, saveTransactions, saveBudgets, saveGoals, saveRecurring, showToast, requestDelete }) {
   const fileInputRef = React.useRef(null);
   const [importError, setImportError] = useState(null);
-  const [linkMode, setLinkMode] = useState(null); // null | 'create' | 'enter'
-  const [codeInput, setCodeInput] = useState('');
-  const [codeConfirmInput, setCodeConfirmInput] = useState('');
-  const [showCode, setShowCode] = useState(false);
-  const [linkFormError, setLinkFormError] = useState(null);
-  const [linking, setLinking] = useState(false);
 
   const buildExportPayload = () => ({
     app: 'pera-log',
@@ -3541,154 +3272,12 @@ function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals,
   const recurringCount = recurring.length;
   const budgetCount = Object.keys(budgets).length + Object.keys(dailyBudgets || {}).length;
 
-  const resetLinkForm = () => {
-    setLinkMode(null);
-    setCodeInput('');
-    setCodeConfirmInput('');
-    setShowCode(false);
-    setLinkFormError(null);
-  };
-
-  const submitCreateCode = async (e) => {
-    e.preventDefault();
-    setLinkFormError(null);
-    const strengthIssue = syncCodeStrengthIssue(codeInput);
-    if (strengthIssue) { setLinkFormError(strengthIssue); return; }
-    if (codeInput !== codeConfirmInput) { setLinkFormError('Codes don\'t match — check for typos.'); return; }
-    setLinking(true);
-    const result = await linkDevice(codeInput);
-    setLinking(false);
-    if (result.ok) {
-      showToast('Device linked');
-      resetLinkForm();
-    } else {
-      setLinkFormError(result.error || 'Could not create sync — try again.');
-    }
-  };
-
-  const submitEnterCode = async (e) => {
-    e.preventDefault();
-    setLinkFormError(null);
-    if (!codeInput) { setLinkFormError('Enter the sync code from your other device.'); return; }
-    setLinking(true);
-    const result = await linkDevice(codeInput);
-    setLinking(false);
-    if (result.ok) {
-      showToast('Device linked — synced data loaded');
-      resetLinkForm();
-    } else {
-      setLinkFormError(result.error || 'Could not connect — check the code and try again.');
-    }
-  };
-
-  const handleUnlink = () => {
-    requestDelete({
-      confirmTitle: 'Stop syncing this device?',
-      confirmBody: 'This device will keep its current data, but will no longer send or receive updates from your other devices until you link it again with the same code.',
-      confirmLabel: 'Stop syncing',
-      onConfirm: () => { unlinkDevice(); showToast('Sync turned off for this device'); },
-    });
-  };
-
   return (
     <div>
       <div className="section-title">Backup & transfer</div>
       <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -8, marginBottom: 18, lineHeight: 1.6}}>
-        Your data is saved only on this device and browser. Link devices below for automatic sync, or use export and import to move a one-time copy between them.
+        Your data is saved only on this device and browser. Use export and import to move a copy between devices.
       </p>
-
-      <div className="form-panel">
-        <div className="section-title" style={{fontSize: 16}}>Sync between devices</div>
-        {!syncEngine.isAvailable() && (
-          <p style={{fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.6}}>
-            Sync isn't available right now — check your internet connection and reload the page.
-          </p>
-        )}
-        {syncEngine.isAvailable() && !syncCode && !linkMode && (
-          <>
-            <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -6, marginBottom: 14, lineHeight: 1.6}}>
-              Keep your phone and laptop in sync automatically using a sync code only you know.
-              There's no email or password — and no way to recover the code if you forget it,
-              so pick something memorable.
-            </p>
-            <div style={{display: 'flex', gap: 10}}>
-              <button className="btn" onClick={() => setLinkMode('create')}>Set up sync</button>
-              <button className="btn secondary" onClick={() => setLinkMode('enter')}>I have a sync code</button>
-            </div>
-          </>
-        )}
-
-        {linkMode === 'create' && (
-          <form onSubmit={submitCreateCode}>
-            <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -6, marginBottom: 14, lineHeight: 1.6}}>
-              Choose a memorable phrase — at least {MIN_SYNC_CODE_LENGTH} characters, with a number or
-              symbol mixed in. You'll type this same code on every device you want synced.
-              <strong> Write it down somewhere safe — if you forget it, there's no way to recover it.</strong>
-            </p>
-            <div className="form-field" style={{marginBottom: 12}}>
-              <label htmlFor="sync-code-new">New sync code</label>
-              <div className="reveal-input-wrap">
-                <input id="sync-code-new" type={showCode ? 'text' : 'password'} value={codeInput} onChange={e => setCodeInput(e.target.value)} style={{paddingLeft: 12, paddingRight: 60}} autoFocus />
-                <button type="button" className="reveal-toggle" onClick={() => setShowCode(s => !s)}>{showCode ? 'Hide' : 'Show'}</button>
-              </div>
-            </div>
-            <div className="form-field" style={{marginBottom: 14}}>
-              <label htmlFor="sync-code-confirm">Confirm sync code</label>
-              <div className="reveal-input-wrap">
-                <input id="sync-code-confirm" type={showCode ? 'text' : 'password'} value={codeConfirmInput} onChange={e => setCodeConfirmInput(e.target.value)} style={{paddingLeft: 12}} />
-              </div>
-            </div>
-            {linkFormError && <div className="budget-warning-text" style={{marginBottom: 12}}>{linkFormError}</div>}
-            <div className="form-actions">
-              <button type="submit" className="btn" disabled={linking}>{linking ? 'Setting up…' : 'Turn on sync'}</button>
-              <button type="button" className="btn secondary" onClick={resetLinkForm}>Cancel</button>
-            </div>
-          </form>
-        )}
-
-        {linkMode === 'enter' && (
-          <form onSubmit={submitEnterCode}>
-            <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -6, marginBottom: 14, lineHeight: 1.6}}>
-              Enter the sync code you set up on your other device. This will replace what's on this
-              device with your synced data.
-            </p>
-            <div className="form-field" style={{marginBottom: 14}}>
-              <label htmlFor="sync-code-existing">Sync code</label>
-              <div className="reveal-input-wrap">
-                <input id="sync-code-existing" type={showCode ? 'text' : 'password'} value={codeInput} onChange={e => setCodeInput(e.target.value)} style={{paddingLeft: 12, paddingRight: 60}} autoFocus />
-                <button type="button" className="reveal-toggle" onClick={() => setShowCode(s => !s)}>{showCode ? 'Hide' : 'Show'}</button>
-              </div>
-            </div>
-            {linkFormError && <div className="budget-warning-text" style={{marginBottom: 12}}>{linkFormError}</div>}
-            <div className="form-actions">
-              <button type="submit" className="btn" disabled={linking}>{linking ? 'Connecting…' : 'Link this device'}</button>
-              <button type="button" className="btn secondary" onClick={resetLinkForm}>Cancel</button>
-            </div>
-          </form>
-        )}
-
-        {syncCode && (
-          <div>
-            <div className="sync-status-row">
-              <span className={'sync-status-dot ' + syncStatus}></span>
-              <span className="sync-status-text">
-                {syncStatus === 'syncing' && 'Syncing…'}
-                {syncStatus === 'synced' && 'Synced'}
-                {syncStatus === 'error' && 'Sync error'}
-                {syncStatus === 'idle' && 'Connected'}
-              </span>
-            </div>
-            {syncStatus === 'error' && syncError && (
-              <p style={{fontSize: 12, color: 'var(--clay)', marginTop: 4}}>{syncError}</p>
-            )}
-            <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: 10, marginBottom: 14, lineHeight: 1.6}}>
-              This device is linked. Changes here appear on your other linked devices automatically, and
-              theirs will appear here.
-            </p>
-            <button className="btn secondary" onClick={handleUnlink}>Stop syncing this device</button>
-          </div>
-        )}
-      </div>
 
       <div className="stat-grid" style={{marginBottom: 24}}>
         <div className="stat-box">
