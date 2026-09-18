@@ -1718,9 +1718,15 @@ const e2ee = {
   async unwrapDataKey(wrappedRecord, wrappingKey) {
     const iv = this.b64ToBuf(wrappedRecord.iv);
     const wrapped = this.b64ToBuf(wrappedRecord.wrapped);
+    // extractable: true to match generateDataKey — this key only ever goes
+    // into this device's own IndexedDB cache (keyVault), never anywhere
+    // else, so there's no reason to make it non-extractable, and keeping
+    // it consistent with generateDataKey avoids relying on browsers'
+    // less-exercised, historically inconsistent handling of storing
+    // non-extractable CryptoKeys via structured clone.
     return crypto.subtle.unwrapKey(
       'raw', wrapped, wrappingKey, { name: 'AES-GCM', iv },
-      { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']
+      { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']
     );
   },
 
@@ -1899,9 +1905,23 @@ const syncEngine = {
   // First-ever setup for this account: generates a fresh data key, wraps it
   // under both the passphrase and a freshly generated recovery code, and
   // writes only the wrapped (ciphertext) envelopes to Firestore — never the
-  // raw data key, passphrase, or recovery code. Returns the recovery code so
-  // the caller can show it to the person once. Caches the raw data key
-  // locally so this device doesn't need to unlock again.
+  // raw data key, passphrase, or recovery code. Returns { recoveryCode,
+  // recoveredLegacyData } so the caller can show the code once and, if this
+  // account had pre-encryption plaintext data, use it as the payload to
+  // push rather than trusting local state alone (see the comment below on
+  // why that matters).
+  //
+  // Also cleans up: an account that synced before encryption existed has
+  // its old data sitting on the doc as plaintext fields (transactions,
+  // budgets, etc., not under payload). Setup is the one point where we can
+  // safely remove those, but removing them here means fetchSnapshot right
+  // after will find no payload and look exactly like a brand-new account —
+  // which is wrong if this device's local store happens to be empty (a
+  // different device than usual, or a fresh browser profile): the caller
+  // would then push an empty payload and the deleted plaintext data would
+  // be gone for good. So this method hands back what it deleted, and the
+  // caller uses recoveredLegacyData over local state when it's present,
+  // rather than only checking whether *this device* has local data.
   async setupEncryption(uid, passphrase) {
     const dataKey = await e2ee.generateDataKey();
     const saltB64 = e2ee.bufToB64(e2ee.randomBytes(16));
@@ -1911,14 +1931,34 @@ const syncEngine = {
     const recoveryKey = await e2ee.importRecoveryKey(recoveryCode);
     const wrappedByRecovery = await e2ee.wrapDataKey(dataKey, recoveryKey);
 
-    await this.docRefForUser(uid).set({
+    const ref = this.docRefForUser(uid);
+    const update = {
       encSalt: saltB64,
       wrappedKeyByPassphrase: wrappedByPassphrase,
       wrappedKeyByRecovery: wrappedByRecovery,
-    }, { merge: true });
+    };
+
+    let recoveredLegacyData = null;
+    const existingSnap = await ref.get();
+    if (existingSnap.exists) {
+      const LEGACY_PLAINTEXT_FIELDS = ['transactions', 'budgets', 'dailyBudgets', 'goals', 'recurring', 'pinnedShortcuts'];
+      const existingData = existingSnap.data();
+      const found = {};
+      let hasLegacy = false;
+      for (const field of LEGACY_PLAINTEXT_FIELDS) {
+        if (field in existingData) {
+          update[field] = window.firebase.firestore.FieldValue.delete();
+          found[field] = existingData[field];
+          hasLegacy = true;
+        }
+      }
+      if (hasLegacy) recoveredLegacyData = found;
+    }
+
+    await ref.set(update, { merge: true });
 
     await keyVault.setCachedDataKey(uid, dataKey);
-    return recoveryCode;
+    return { recoveryCode, recoveredLegacyData };
   },
 
   // Unlocks an existing account's data key using either the passphrase or
@@ -2197,7 +2237,7 @@ function EncryptionModal({ mode, onSetup, onUnlock, onDone, onCancel, busy, erro
             <button className="btn secondary" onClick={onCancel} disabled={busy}>Cancel</button>
             <button
               className="btn" disabled={!canSubmit || busy}
-              onClick={() => onSetup(passphrase).then(code => setRecoveryCode(code))}
+              onClick={() => onSetup(passphrase).then(code => setRecoveryCode(code)).catch(() => {})}
             >
               {busy ? 'Setting up…' : 'Continue'}
             </button>
@@ -2468,30 +2508,36 @@ function App() {
   // set up encryption (show the "setup" modal, generate keys, show the
   // recovery code once); account has encryption but this device hasn't
   // unlocked it yet (show the "unlock" modal for passphrase or recovery
-  // code). Resolves true once unlocked, false if the person cancels.
+  // code). Resolves { ok: true, recoveredLegacyData } once unlocked — the
+  // latter is non-null only when setup just recovered pre-encryption
+  // plaintext data from this account's doc, so the caller can push that
+  // instead of this device's own (possibly empty) local state — or
+  // { ok: false } if the person cancels.
   const ensureEncryptionUnlocked = useCallback(async (uid) => {
     const cached = await syncEngine.getUnlockedDataKey(uid);
-    if (cached) return true;
+    if (cached) return { ok: true, recoveredLegacyData: null };
 
     const hasSetup = await syncEngine.hasEncryptionSetup(uid);
 
     if (!hasSetup) {
       return await new Promise((resolve) => {
+        let recoveredLegacyData = null;
         setEncryptionPrompt({
           mode: 'setup', busy: false, error: null,
           onSetup: async (passphrase) => {
             setEncryptionPrompt(p => ({ ...p, busy: true, error: null }));
             try {
-              const recoveryCode = await syncEngine.setupEncryption(uid, passphrase);
+              const result = await syncEngine.setupEncryption(uid, passphrase);
+              recoveredLegacyData = result.recoveredLegacyData;
               setEncryptionPrompt(p => ({ ...p, busy: false }));
-              return recoveryCode;
+              return result.recoveryCode;
             } catch (e) {
               setEncryptionPrompt(p => ({ ...p, busy: false, error: e.message || 'Could not set up encryption.' }));
               throw e;
             }
           },
-          onDone: () => { setEncryptionPrompt(null); resolve(true); },
-          onCancel: () => { setEncryptionPrompt(null); resolve(false); },
+          onDone: () => { setEncryptionPrompt(null); resolve({ ok: true, recoveredLegacyData }); },
+          onCancel: () => { setEncryptionPrompt(null); resolve({ ok: false, recoveredLegacyData: null }); },
         });
       });
     }
@@ -2505,12 +2551,12 @@ function App() {
             if (method === 'passphrase') await syncEngine.unlockWithPassphrase(uid, value);
             else await syncEngine.unlockWithRecoveryCode(uid, value);
             setEncryptionPrompt(null);
-            resolve(true);
+            resolve({ ok: true, recoveredLegacyData: null });
           } catch (e) {
             setEncryptionPrompt(p => ({ ...p, busy: false, error: e.message || 'Could not unlock.' }));
           }
         },
-        onCancel: () => { setEncryptionPrompt(null); resolve(false); },
+        onCancel: () => { setEncryptionPrompt(null); resolve({ ok: false, recoveredLegacyData: null }); },
       });
     });
   }, []);
@@ -2521,11 +2567,30 @@ function App() {
     try {
       const user = await syncEngine.signInWithGoogle();
 
-      const unlocked = await ensureEncryptionUnlocked(user.uid);
-      if (!unlocked) {
+      const unlockResult = await ensureEncryptionUnlocked(user.uid);
+      if (!unlockResult.ok) {
         await syncEngine.signOut();
         setSyncStatus('idle');
         return { ok: false, error: 'Sign-in cancelled.' };
+      }
+
+      // Setup just recovered pre-encryption plaintext data from this
+      // account's own doc (see setupEncryption's comment on why this takes
+      // priority over whatever's on this particular device): merge it into
+      // local state so nothing this device already had gets clobbered, push
+      // it as the new encrypted payload, and skip the local-data prompt
+      // below entirely — that prompt is about which *device* should win
+      // when the account is genuinely starting fresh, which isn't the case
+      // here.
+      if (unlockResult.recoveredLegacyData) {
+        const merged = {
+          transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts,
+          ...unlockResult.recoveredLegacyData,
+        };
+        applyRemoteSnapshot(merged);
+        await syncEngine.pushSnapshot(merged);
+        await finishSignIn(user);
+        return { ok: true };
       }
 
       const existing = await syncEngine.fetchSnapshot();
@@ -2584,6 +2649,34 @@ function App() {
     setSyncStatus('idle');
     setSyncError(null);
   }, []);
+
+  // Covers a gap the normal sign-in flow doesn't: Firebase restores an
+  // existing Google session automatically on page load (via onAuthChange),
+  // which sets syncUser and starts the subscribe effect — without ever
+  // going through signInAndSync/ensureEncryptionUnlocked. If this device's
+  // cached data key isn't there (cleared storage, private window, a
+  // browser that doesn't persist IndexedDB the way it persists the auth
+  // session), subscribe surfaces a "Locked" syncError with no way to act
+  // on it otherwise. This lets the Data tab offer an unlock retry directly
+  // from that state, without forcing a sign-out/sign-in round trip.
+  const retryUnlock = useCallback(async () => {
+    if (!syncUser) return;
+    setSyncStatus('syncing');
+    setSyncError(null);
+    const unlockResult = await ensureEncryptionUnlocked(syncUser.uid);
+    if (!unlockResult.ok) {
+      setSyncStatus('error');
+      setSyncError('Locked — enter your passphrase or recovery code first.');
+      return;
+    }
+    // ensureEncryptionUnlocked only ever recovers legacy plaintext data
+    // during first-ever setup, which can't be the case here (this account
+    // already has a synced, encrypted payload or subscribe couldn't have
+    // reported "Locked" in the first place) — so just let the existing
+    // subscribe effect's next tick pick up the now-unlocked key. Nudging
+    // syncUser to a new object re-triggers that effect.
+    setSyncUser(u => ({ ...u }));
+  }, [syncUser, ensureEncryptionUnlocked]);
 
   const addTransaction = (tx) => {
     const next = [{ ...tx, id: uid() }, ...transactions];
@@ -2719,6 +2812,7 @@ function App() {
           syncError={syncError}
           signInAndSync={signInAndSync}
           signOutOfSync={signOutOfSync}
+          retryUnlock={retryUnlock}
         />
       )}
 
@@ -4013,7 +4107,7 @@ function StatsTab({ transactions }) {
   );
 }
 
-function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals, recurring, pinnedShortcuts, savePinnedShortcuts, saveTransactions, saveBudgets, saveGoals, saveRecurring, showToast, requestDelete, syncUser, syncStatus, syncError, signInAndSync, signOutOfSync }) {
+function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals, recurring, pinnedShortcuts, savePinnedShortcuts, saveTransactions, saveBudgets, saveGoals, saveRecurring, showToast, requestDelete, syncUser, syncStatus, syncError, signInAndSync, signOutOfSync, retryUnlock }) {
   const fileInputRef = React.useRef(null);
   const [importError, setImportError] = useState(null);
   const [signingIn, setSigningIn] = useState(false);
@@ -4192,7 +4286,14 @@ function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals,
               </span>
             </div>
             {syncStatus === 'error' && syncError && (
-              <p style={{fontSize: 12, color: 'var(--clay)', marginTop: 4}}>{syncError}</p>
+              <div style={{marginTop: 4}}>
+                <p style={{fontSize: 12, color: 'var(--clay)', marginBottom: syncError.startsWith('Locked') ? 6 : 0}}>{syncError}</p>
+                {syncError.startsWith('Locked') && (
+                  <button className="btn secondary" style={{fontSize: 12, padding: '6px 10px'}} onClick={retryUnlock}>
+                    Unlock this device
+                  </button>
+                )}
+              </div>
             )}
             <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: 10, marginBottom: 14, lineHeight: 1.6}}>
               Signed in. Changes here appear on your other devices signed into this same Google account
