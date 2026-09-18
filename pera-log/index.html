@@ -1156,6 +1156,31 @@
   .modal-box p { font-size: 13px; color: var(--ink-soft); margin: 0 0 18px 0; line-height: 1.5; }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
+  .input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    /* Generous right padding clears password-manager icons (Proton Pass,
+       1Password, browser-native autofill, etc.), which overlay themselves
+       inside the field near the right edge regardless of our own layout. */
+    padding: 12px 44px 12px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 4px;
+    background: var(--white);
+    color: var(--ink);
+    line-height: 1.4;
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--green);
+  }
+  .input::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.7;
+  }
+
   .tutorial-panel {
     background: var(--white);
     border: 1.5px solid var(--ink);
