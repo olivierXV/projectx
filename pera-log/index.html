@@ -1643,6 +1643,165 @@ function toLocalDateStr(date) {
 
 const todayStr = () => toLocalDateStr(new Date());
 
+// ---- End-to-end encryption (E2EE) for synced data ----
+// Everything below encrypts/decrypts client-side so that Firestore — and
+// therefore the Firebase project owner, including via the Console or an
+// admin SDK — only ever sees ciphertext. There is deliberately no path in
+// this code that could send a plaintext data key, passphrase, or recovery
+// code to Firestore or any server; the only two things that can unlock the
+// data are the person's passphrase and their self-saved recovery code,
+// neither of which this app ever stores or transmits.
+//
+// Design: one random 256-bit "data key" actually encrypts the synced data.
+// That data key is itself wrapped (encrypted) twice — once under a key
+// derived from the person's passphrase (PBKDF2, high iteration count, a
+// random salt), and once under a random 256-bit "recovery key" shown to the
+// person once at setup. Both wrapped copies are harmless ciphertext, safe to
+// store in Firestore: either the passphrase or the recovery code unwraps the
+// same underlying data key. Once unwrapped on a device, the raw data key is
+// cached in that device's own IndexedDB (never sent anywhere) so future
+// opens on that device skip straight to decrypting — no re-prompt.
+const e2ee = {
+  PBKDF2_ITERATIONS: 600000,
+
+  // ---- base64 <-> ArrayBuffer helpers ----
+  bufToB64(buf) {
+    return btoa(String.fromCharCode(...new Uint8Array(buf)));
+  },
+  b64ToBuf(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  },
+
+  // ---- random material ----
+  randomBytes(len) {
+    return crypto.getRandomValues(new Uint8Array(len));
+  },
+  // A 256-bit recovery key, shown to the person as a readable grouped code
+  // like "XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" (base32-ish, no ambiguous chars).
+  generateRecoveryCode() {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
+    const bytes = this.randomBytes(30); // 30 chars of entropy, grouped below
+    let chars = '';
+    for (let i = 0; i < bytes.length; i++) chars += alphabet[bytes[i] % alphabet.length];
+    return chars.match(/.{1,4}/g).slice(0, 6).join('-');
+  },
+
+  // ---- key derivation & wrapping ----
+  async deriveKeyFromPassphrase(passphrase, saltB64) {
+    const salt = this.b64ToBuf(saltB64);
+    const baseKey = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: this.PBKDF2_ITERATIONS, hash: 'SHA-256' },
+      baseKey, { name: 'AES-GCM', length: 256 }, false, ['wrapKey', 'unwrapKey']
+    );
+  },
+  async importRecoveryKey(recoveryCode) {
+    // The recovery code IS the key material (high entropy already), just
+    // normalized and hashed to a fixed-length key rather than used raw.
+    const normalized = recoveryCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized));
+    return crypto.subtle.importKey('raw', digest, { name: 'AES-GCM' }, false, ['wrapKey', 'unwrapKey']);
+  },
+  async generateDataKey() {
+    return crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+  },
+  async wrapDataKey(dataKey, wrappingKey) {
+    const iv = this.randomBytes(12);
+    const wrapped = await crypto.subtle.wrapKey('raw', dataKey, wrappingKey, { name: 'AES-GCM', iv });
+    return { iv: this.bufToB64(iv), wrapped: this.bufToB64(wrapped) };
+  },
+  async unwrapDataKey(wrappedRecord, wrappingKey) {
+    const iv = this.b64ToBuf(wrappedRecord.iv);
+    const wrapped = this.b64ToBuf(wrappedRecord.wrapped);
+    return crypto.subtle.unwrapKey(
+      'raw', wrapped, wrappingKey, { name: 'AES-GCM', iv },
+      { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']
+    );
+  },
+
+  // ---- data encryption ----
+  async encryptJSON(dataKey, obj) {
+    const iv = this.randomBytes(12);
+    const plaintext = new TextEncoder().encode(JSON.stringify(obj));
+    const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, dataKey, plaintext);
+    return { iv: this.bufToB64(iv), ciphertext: this.bufToB64(ciphertext) };
+  },
+  async decryptJSON(dataKey, record) {
+    const iv = this.b64ToBuf(record.iv);
+    const ciphertext = this.b64ToBuf(record.ciphertext);
+    const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, dataKey, ciphertext);
+    return JSON.parse(new TextDecoder().decode(plaintext));
+  },
+};
+
+// ---- Per-device cache for the unwrapped data key (IndexedDB) ----
+// Deliberately separate from storageAdapter/localStorage: this holds live
+// CryptoKey objects, not JSON, and is scoped per browser profile, never
+// synced anywhere. Losing it just means re-entering the passphrase or
+// recovery code on that device — it holds no data itself.
+const keyVault = {
+  _dbPromise: null,
+
+  _openDb() {
+    if (this._dbPromise) return this._dbPromise;
+    this._dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open('pera-log-vault', 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('keys');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return this._dbPromise;
+  },
+
+  async getCachedDataKey(uid) {
+    try {
+      const db = await this._openDb();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction('keys', 'readonly');
+        const req = tx.objectStore('keys').get(uid);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      console.error('Vault read failed', e);
+      return null;
+    }
+  },
+
+  async setCachedDataKey(uid, dataKey) {
+    try {
+      const db = await this._openDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction('keys', 'readwrite');
+        tx.objectStore('keys').put(dataKey, uid);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.error('Vault write failed', e);
+    }
+  },
+
+  async clearCachedDataKey(uid) {
+    try {
+      const db = await this._openDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction('keys', 'readwrite');
+        tx.objectStore('keys').delete(uid);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.error('Vault clear failed', e);
+    }
+  },
+};
+
 // ---- Cloud sync (Firebase, Google Sign-In) ----
 // Optional layer on top of storageAdapter: when the person signs in with
 // their Google account, data is also written to Firestore under a document
@@ -1650,8 +1809,13 @@ const todayStr = () => toLocalDateStr(new Date());
 // a second device reads the same data. Security is real per-account access
 // control enforced by Firestore rules (request.auth.uid == the document's
 // owner), not obscurity — see the rules pasted into the Firebase console.
-// localStorage remains the source of truth for instant, offline-safe reads;
-// Firestore is a best-effort mirror kept in sync in the background.
+// On top of that, the synced payload itself is end-to-end encrypted (see
+// e2ee/keyVault above): Firestore, and therefore this project's owner, only
+// ever sees ciphertext plus the wrapped-key envelopes needed to unlock it
+// with a passphrase or recovery code — never a usable key on its own.
+// localStorage remains the source of truth for instant, offline-safe reads,
+// and stays plaintext there; Firestore is a best-effort encrypted mirror
+// kept in sync in the background.
 const firebaseConfig = {
   apiKey: "AIzaSyAQNXL2YIJJBt0YzBziKMut16-JPdi8Di8",
   authDomain: "pera-log.firebaseapp.com",
@@ -1723,33 +1887,122 @@ const syncEngine = {
     return this._db.collection(SYNC_DOC_COLLECTION).doc(uid);
   },
 
-  // Pulls the current cloud snapshot for the signed-in user, or null if
-  // nothing is there yet.
+  // ---- Encryption setup / unlock ----
+  // True once this doc has key-wrapping material in it (i.e. E2EE has been
+  // set up for this account, on any device, ever).
+  async hasEncryptionSetup(uid) {
+    const ref = this.docRefForUser(uid);
+    const snap = await ref.get();
+    return !!(snap.exists && snap.data().encSalt);
+  },
+
+  // First-ever setup for this account: generates a fresh data key, wraps it
+  // under both the passphrase and a freshly generated recovery code, and
+  // writes only the wrapped (ciphertext) envelopes to Firestore — never the
+  // raw data key, passphrase, or recovery code. Returns the recovery code so
+  // the caller can show it to the person once. Caches the raw data key
+  // locally so this device doesn't need to unlock again.
+  async setupEncryption(uid, passphrase) {
+    const dataKey = await e2ee.generateDataKey();
+    const saltB64 = e2ee.bufToB64(e2ee.randomBytes(16));
+    const passphraseKey = await e2ee.deriveKeyFromPassphrase(passphrase, saltB64);
+    const wrappedByPassphrase = await e2ee.wrapDataKey(dataKey, passphraseKey);
+    const recoveryCode = e2ee.generateRecoveryCode();
+    const recoveryKey = await e2ee.importRecoveryKey(recoveryCode);
+    const wrappedByRecovery = await e2ee.wrapDataKey(dataKey, recoveryKey);
+
+    await this.docRefForUser(uid).set({
+      encSalt: saltB64,
+      wrappedKeyByPassphrase: wrappedByPassphrase,
+      wrappedKeyByRecovery: wrappedByRecovery,
+    }, { merge: true });
+
+    await keyVault.setCachedDataKey(uid, dataKey);
+    return recoveryCode;
+  },
+
+  // Unlocks an existing account's data key using either the passphrase or
+  // the recovery code (whichever the person has), and caches it locally.
+  async unlockWithPassphrase(uid, passphrase) {
+    const snap = await this.docRefForUser(uid).get();
+    if (!snap.exists || !snap.data().encSalt) throw new Error('Encryption isn\'t set up for this account yet.');
+    const { encSalt, wrappedKeyByPassphrase } = snap.data();
+    const passphraseKey = await e2ee.deriveKeyFromPassphrase(passphrase, encSalt);
+    let dataKey;
+    try {
+      dataKey = await e2ee.unwrapDataKey(wrappedKeyByPassphrase, passphraseKey);
+    } catch (e) {
+      throw new Error('That passphrase doesn\'t match.');
+    }
+    await keyVault.setCachedDataKey(uid, dataKey);
+    return dataKey;
+  },
+
+  async unlockWithRecoveryCode(uid, recoveryCode) {
+    const snap = await this.docRefForUser(uid).get();
+    if (!snap.exists || !snap.data().wrappedKeyByRecovery) throw new Error('Encryption isn\'t set up for this account yet.');
+    const recoveryKey = await e2ee.importRecoveryKey(recoveryCode);
+    let dataKey;
+    try {
+      dataKey = await e2ee.unwrapDataKey(snap.data().wrappedKeyByRecovery, recoveryKey);
+    } catch (e) {
+      throw new Error('That recovery code doesn\'t match.');
+    }
+    await keyVault.setCachedDataKey(uid, dataKey);
+    return dataKey;
+  },
+
+  async getUnlockedDataKey(uid) {
+    return keyVault.getCachedDataKey(uid);
+  },
+
+  // Pulls the current cloud snapshot for the signed-in user, decrypted, or
+  // null if nothing is there yet. Requires an already-unlocked (cached) data
+  // key on this device — call unlockWithPassphrase/unlockWithRecoveryCode
+  // first if getUnlockedDataKey comes back empty.
   async fetchSnapshot() {
     const user = this.getCurrentUser();
     if (!user) throw new Error('Sign in with Google first.');
     const ref = this.docRefForUser(user.uid);
     const snap = await ref.get();
-    return snap.exists ? snap.data() : null;
+    if (!snap.exists || !snap.data().payload) return null;
+    const dataKey = await this.getUnlockedDataKey(user.uid);
+    if (!dataKey) throw new Error('Locked — enter your passphrase or recovery code first.');
+    return e2ee.decryptJSON(dataKey, snap.data().payload);
   },
 
-  // Writes a full snapshot (all local data) up to the cloud for this user.
+  // Encrypts and writes a full snapshot (all local data) up to the cloud
+  // for this user. Requires an already-unlocked data key on this device.
   async pushSnapshot(data) {
     const user = this.getCurrentUser();
     if (!user) throw new Error('Sign in with Google first.');
+    const dataKey = await this.getUnlockedDataKey(user.uid);
+    if (!dataKey) throw new Error('Locked — enter your passphrase or recovery code first.');
+    const payload = await e2ee.encryptJSON(dataKey, data);
     const ref = this.docRefForUser(user.uid);
-    await ref.set({ ...data, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() });
+    await ref.set({ payload, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
   },
 
   // Subscribes to live changes on the signed-in user's document; calls
-  // onChange(data) whenever it updates (including the first read).
+  // onChange(data) with decrypted data whenever it updates (including the
+  // first read). Decryption is async, so this fires the callback once the
+  // decrypt resolves rather than synchronously inside onSnapshot.
   subscribe(onChange, onError) {
     const user = this.getCurrentUser();
     if (!user) { if (onError) onError(new Error('Sign in with Google first.')); return () => {}; }
     if (this._unsubscribeSnapshot) { this._unsubscribeSnapshot(); this._unsubscribeSnapshot = null; }
     const ref = this.docRefForUser(user.uid);
     this._unsubscribeSnapshot = ref.onSnapshot(
-      snap => { if (snap.exists) onChange(snap.data()); },
+      snap => {
+        if (!snap.exists || !snap.data().payload) return;
+        this.getUnlockedDataKey(user.uid).then(dataKey => {
+          if (!dataKey) { if (onError) onError(new Error('Locked — enter your passphrase or recovery code first.')); return; }
+          return e2ee.decryptJSON(dataKey, snap.data().payload).then(onChange);
+        }).catch(err => {
+          console.error('Decrypt failed', err);
+          if (onError) onError(err);
+        });
+      },
       err => { console.error('Sync listener error', err); if (onError) onError(err); }
     );
     return this._unsubscribeSnapshot;
@@ -1862,6 +2115,15 @@ function TutorialPanel({ onClose }) {
             copy of your data.
           </p>
 
+          <h3>Your synced data is encrypted</h3>
+          <p>
+            The first time you sign in, you'll set a passphrase. It encrypts your data on your device before
+            it's ever sent to sync — so what's stored can't be read without that passphrase, not even by
+            whoever runs this app. You'll get a one-time recovery code right after; save it somewhere safe,
+            since it's the only way back in if you forget your passphrase. Each new device asks for the
+            passphrase (or the recovery code) once, then remembers it — no re-entering it every time.
+          </p>
+
           <p className="tutorial-footer-note">
             You can reopen this anytime by tapping the <strong>?</strong> icon in the top right.
           </p>
@@ -1886,6 +2148,139 @@ function ConfirmModal({ title, body, confirmLabel, onConfirm, onCancel }) {
   );
 }
 
+// Handles all three moments the person needs to interact with E2EE:
+// - "setup": first-ever sync for this Google account. Asks for a new
+//   passphrase (twice, to catch typos), explains what it means and that it
+//   can't be recovered by anyone else, then on submit generates the keys
+//   and shows the recovery code once.
+// - "unlock": this account has synced before, but this device doesn't have
+//   the cached data key (new device, or cleared browser data). Asks for
+//   either the passphrase or the recovery code.
+// - "showRecoveryCode": step shown right after setup succeeds, displaying
+//   the code with a copy affordance and a confirmation checkbox before
+//   closing, since this is the one and only time it's shown.
+function EncryptionModal({ mode, onSetup, onUnlock, onDone, onCancel, busy, error }) {
+  const [passphrase, setPassphrase] = useState('');
+  const [passphraseConfirm, setPassphraseConfirm] = useState('');
+  const [unlockMethod, setUnlockMethod] = useState('passphrase'); // or 'recovery'
+  const [unlockValue, setUnlockValue] = useState('');
+  const [recoveryCode, setRecoveryCode] = useState(null);
+  const [savedConfirmed, setSavedConfirmed] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  if (mode === 'setup') {
+    const canSubmit = passphrase.length >= 8 && passphrase === passphraseConfirm;
+    return (
+      <div className="modal-overlay">
+        <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="section-title serif">Protect your synced data</div>
+          <p>
+            Set a passphrase to encrypt your data before it leaves this device. It's separate from your
+            Google sign-in — nobody else, including whoever runs this app, can read your data without it.
+            You'll only need to enter it again the first time you use a new device.
+          </p>
+          <input
+            className="input" type="password" placeholder="Passphrase (at least 8 characters)"
+            value={passphrase} onChange={e => setPassphrase(e.target.value)} autoFocus
+          />
+          <input
+            className="input" type="password" placeholder="Confirm passphrase"
+            value={passphraseConfirm} onChange={e => setPassphraseConfirm(e.target.value)}
+            style={{marginTop: 8}}
+          />
+          <p style={{fontSize: '0.85em', opacity: 0.8, marginTop: 8}}>
+            There's no way to reset this passphrase if you forget it — but right after this, you'll get a
+            one-time recovery code you can save as a backup.
+          </p>
+          {error && <p style={{color: 'var(--clay)'}}>{error}</p>}
+          <div className="modal-actions">
+            <button className="btn secondary" onClick={onCancel} disabled={busy}>Cancel</button>
+            <button
+              className="btn" disabled={!canSubmit || busy}
+              onClick={() => onSetup(passphrase).then(code => setRecoveryCode(code))}
+            >
+              {busy ? 'Setting up…' : 'Continue'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (recoveryCode) {
+    return (
+      <div className="modal-overlay">
+        <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="section-title serif">Save your recovery code</div>
+          <p>
+            This is the only time you'll see this code. If you ever forget your passphrase, it's the only
+            way back into your data — write it down or save it in a password manager now.
+          </p>
+          <div style={{
+            fontFamily: 'monospace', fontSize: '1.2em', textAlign: 'center', padding: '12px',
+            background: 'var(--paper-2, rgba(0,0,0,0.05))', borderRadius: '8px', margin: '12px 0',
+            letterSpacing: '0.05em',
+          }}>
+            {recoveryCode}
+          </div>
+          <button
+            className="btn secondary"
+            onClick={() => { navigator.clipboard.writeText(recoveryCode).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }}
+          >
+            {copied ? 'Copied!' : 'Copy code'}
+          </button>
+          <label style={{display: 'flex', alignItems: 'center', gap: 8, marginTop: 16}}>
+            <input type="checkbox" checked={savedConfirmed} onChange={e => setSavedConfirmed(e.target.checked)} />
+            I've saved this somewhere safe
+          </label>
+          <div className="modal-actions">
+            <button className="btn" disabled={!savedConfirmed} onClick={onDone}>Done</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'unlock') {
+    return (
+      <div className="modal-overlay">
+        <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="section-title serif">Unlock your synced data</div>
+          <p>This device hasn't been unlocked yet. Enter your passphrase or recovery code to continue.</p>
+          <div style={{display: 'flex', gap: 8, marginBottom: 8}}>
+            <button
+              className={unlockMethod === 'passphrase' ? 'btn' : 'btn secondary'}
+              onClick={() => { setUnlockMethod('passphrase'); setUnlockValue(''); }}
+            >Passphrase</button>
+            <button
+              className={unlockMethod === 'recovery' ? 'btn' : 'btn secondary'}
+              onClick={() => { setUnlockMethod('recovery'); setUnlockValue(''); }}
+            >Recovery code</button>
+          </div>
+          <input
+            className="input"
+            type={unlockMethod === 'passphrase' ? 'password' : 'text'}
+            placeholder={unlockMethod === 'passphrase' ? 'Passphrase' : 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX'}
+            value={unlockValue} onChange={e => setUnlockValue(e.target.value)} autoFocus
+          />
+          {error && <p style={{color: 'var(--clay)'}}>{error}</p>}
+          <div className="modal-actions">
+            <button className="btn secondary" onClick={onCancel} disabled={busy}>Cancel</button>
+            <button
+              className="btn" disabled={!unlockValue || busy}
+              onClick={() => onUnlock(unlockMethod, unlockValue)}
+            >
+              {busy ? 'Unlocking…' : 'Unlock'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function App() {
   const [loaded, setLoaded] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -1898,6 +2293,10 @@ function App() {
   const [tab, setTab] = useState('home');
   const [toastMsg, showToast] = useToast();
   const [confirmDelete, setConfirmDelete] = useState(null);
+  // Drives the EncryptionModal: null (hidden), or { mode: 'setup' | 'unlock',
+  // uid, busy, error, resolve } where resolve is the pending promise's
+  // resolver, called once the person finishes (or cancels) the modal.
+  const [encryptionPrompt, setEncryptionPrompt] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [syncUser, setSyncUser] = useState(null); // { uid, displayName, email, photoURL } | null
   const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | synced | error
@@ -2062,11 +2461,73 @@ function App() {
     setSyncStatus('synced');
   }, []);
 
+  // Ensures this device has an unlocked (cached) data key for uid before any
+  // fetchSnapshot/pushSnapshot call, which both require one. Three cases:
+  // already cached (resolve immediately, no prompt — this is what makes
+  // sync "automatic" after the first time on a device); account has never
+  // set up encryption (show the "setup" modal, generate keys, show the
+  // recovery code once); account has encryption but this device hasn't
+  // unlocked it yet (show the "unlock" modal for passphrase or recovery
+  // code). Resolves true once unlocked, false if the person cancels.
+  const ensureEncryptionUnlocked = useCallback(async (uid) => {
+    const cached = await syncEngine.getUnlockedDataKey(uid);
+    if (cached) return true;
+
+    const hasSetup = await syncEngine.hasEncryptionSetup(uid);
+
+    if (!hasSetup) {
+      return await new Promise((resolve) => {
+        setEncryptionPrompt({
+          mode: 'setup', busy: false, error: null,
+          onSetup: async (passphrase) => {
+            setEncryptionPrompt(p => ({ ...p, busy: true, error: null }));
+            try {
+              const recoveryCode = await syncEngine.setupEncryption(uid, passphrase);
+              setEncryptionPrompt(p => ({ ...p, busy: false }));
+              return recoveryCode;
+            } catch (e) {
+              setEncryptionPrompt(p => ({ ...p, busy: false, error: e.message || 'Could not set up encryption.' }));
+              throw e;
+            }
+          },
+          onDone: () => { setEncryptionPrompt(null); resolve(true); },
+          onCancel: () => { setEncryptionPrompt(null); resolve(false); },
+        });
+      });
+    }
+
+    return await new Promise((resolve) => {
+      setEncryptionPrompt({
+        mode: 'unlock', busy: false, error: null,
+        onUnlock: async (method, value) => {
+          setEncryptionPrompt(p => ({ ...p, busy: true, error: null }));
+          try {
+            if (method === 'passphrase') await syncEngine.unlockWithPassphrase(uid, value);
+            else await syncEngine.unlockWithRecoveryCode(uid, value);
+            setEncryptionPrompt(null);
+            resolve(true);
+          } catch (e) {
+            setEncryptionPrompt(p => ({ ...p, busy: false, error: e.message || 'Could not unlock.' }));
+          }
+        },
+        onCancel: () => { setEncryptionPrompt(null); resolve(false); },
+      });
+    });
+  }, []);
+
   const signInAndSync = useCallback(async () => {
     setSyncStatus('syncing');
     setSyncError(null);
     try {
       const user = await syncEngine.signInWithGoogle();
+
+      const unlocked = await ensureEncryptionUnlocked(user.uid);
+      if (!unlocked) {
+        await syncEngine.signOut();
+        setSyncStatus('idle');
+        return { ok: false, error: 'Sign-in cancelled.' };
+      }
+
       const existing = await syncEngine.fetchSnapshot();
       if (existing) {
         applyRemoteSnapshot(existing);
@@ -2115,7 +2576,7 @@ function App() {
       setSyncError(message);
       return { ok: false, error: message };
     }
-  }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, applyRemoteSnapshot, finishSignIn]);
+  }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, applyRemoteSnapshot, finishSignIn, ensureEncryptionUnlocked]);
 
   const signOutOfSync = useCallback(async () => {
     await syncEngine.signOut();
@@ -2270,6 +2731,18 @@ function App() {
           confirmLabel={confirmDelete.confirmLabel || "Delete"}
           onConfirm={() => { confirmDelete.onConfirm(); setConfirmDelete(null); }}
           onCancel={() => { if (confirmDelete.onCancel) confirmDelete.onCancel(); setConfirmDelete(null); }}
+        />
+      )}
+
+      {encryptionPrompt && (
+        <EncryptionModal
+          mode={encryptionPrompt.mode}
+          busy={encryptionPrompt.busy}
+          error={encryptionPrompt.error}
+          onSetup={encryptionPrompt.onSetup}
+          onUnlock={encryptionPrompt.onUnlock}
+          onDone={encryptionPrompt.onDone}
+          onCancel={encryptionPrompt.onCancel}
         />
       )}
 
