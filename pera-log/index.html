@@ -291,6 +291,86 @@
     pointer-events: none;
   }
   .peso-input-wrap input { padding-left: 26px !important; }
+  .reveal-input-wrap {
+    position: relative;
+  }
+  .reveal-input-wrap input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .reveal-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+  .reveal-toggle:hover { text-decoration: underline; }
+  .sync-status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .sync-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ink-soft);
+    flex: 0 0 auto;
+  }
+  .sync-status-dot.synced { background: var(--green); }
+  .sync-status-dot.syncing { background: var(--gold); animation: pulse-dot 1.2s ease-in-out infinite; }
+  .sync-status-dot.error { background: var(--clay); }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .sync-status-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .google-signin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--white);
+    color: var(--ink);
+    border: 1.5px solid var(--line);
+  }
+  .google-signin-btn:hover {
+    border-color: var(--ink);
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .sync-account-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .sync-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+  }
+  .sync-account-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .sync-account-email {
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
 
   /* LEDGER LIST */
   .day-group {
@@ -1178,6 +1258,9 @@
     outline-offset: 2px;
   }
 </style>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -1560,6 +1643,123 @@ function toLocalDateStr(date) {
 
 const todayStr = () => toLocalDateStr(new Date());
 
+// ---- Cloud sync (Firebase, Google Sign-In) ----
+// Optional layer on top of storageAdapter: when the person signs in with
+// their Google account, data is also written to Firestore under a document
+// keyed by their stable Firebase Auth UID, so the same signed-in account on
+// a second device reads the same data. Security is real per-account access
+// control enforced by Firestore rules (request.auth.uid == the document's
+// owner), not obscurity — see the rules pasted into the Firebase console.
+// localStorage remains the source of truth for instant, offline-safe reads;
+// Firestore is a best-effort mirror kept in sync in the background.
+const firebaseConfig = {
+  apiKey: "AIzaSyAQNXL2YIJJBt0YzBziKMut16-JPdi8Di8",
+  authDomain: "pera-log.firebaseapp.com",
+  projectId: "pera-log",
+  appId: "1:225519178777:web:45ad93d84a6eedff7a4688",
+};
+
+const SYNC_DOC_COLLECTION = 'syncs';
+
+const syncEngine = {
+  _app: null,
+  _auth: null,
+  _db: null,
+  _unsubscribeSnapshot: null,
+  _unsubscribeAuth: null,
+  _ready: false,
+
+  isAvailable() {
+    return typeof window !== 'undefined' && typeof window.firebase !== 'undefined';
+  },
+
+  init() {
+    if (this._ready) return true;
+    if (!this.isAvailable()) return false;
+    try {
+      if (!window.firebase.apps || !window.firebase.apps.length) {
+        this._app = window.firebase.initializeApp(firebaseConfig);
+      } else {
+        this._app = window.firebase.app();
+      }
+      this._auth = window.firebase.auth();
+      this._db = window.firebase.firestore();
+      this._ready = true;
+      return true;
+    } catch (e) {
+      console.error('Firebase init failed', e);
+      return false;
+    }
+  },
+
+  getCurrentUser() {
+    if (!this.init()) return null;
+    return this._auth.currentUser;
+  },
+
+  // Registers a callback fired whenever sign-in state changes (including on
+  // initial load, once Firebase has checked for an existing session).
+  onAuthChange(callback) {
+    if (!this.init()) { callback(null); return () => {}; }
+    if (this._unsubscribeAuth) this._unsubscribeAuth();
+    this._unsubscribeAuth = this._auth.onAuthStateChanged(callback);
+    return this._unsubscribeAuth;
+  },
+
+  async signInWithGoogle() {
+    if (!this.init()) throw new Error('Sync isn\'t available right now.');
+    const provider = new window.firebase.auth.GoogleAuthProvider();
+    const cred = await this._auth.signInWithPopup(provider);
+    return cred.user;
+  },
+
+  async signOut() {
+    if (!this.init()) return;
+    this.stopSubscription();
+    await this._auth.signOut();
+  },
+
+  docRefForUser(uid) {
+    return this._db.collection(SYNC_DOC_COLLECTION).doc(uid);
+  },
+
+  // Pulls the current cloud snapshot for the signed-in user, or null if
+  // nothing is there yet.
+  async fetchSnapshot() {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('Sign in with Google first.');
+    const ref = this.docRefForUser(user.uid);
+    const snap = await ref.get();
+    return snap.exists ? snap.data() : null;
+  },
+
+  // Writes a full snapshot (all local data) up to the cloud for this user.
+  async pushSnapshot(data) {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('Sign in with Google first.');
+    const ref = this.docRefForUser(user.uid);
+    await ref.set({ ...data, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() });
+  },
+
+  // Subscribes to live changes on the signed-in user's document; calls
+  // onChange(data) whenever it updates (including the first read).
+  subscribe(onChange, onError) {
+    const user = this.getCurrentUser();
+    if (!user) { if (onError) onError(new Error('Sign in with Google first.')); return () => {}; }
+    if (this._unsubscribeSnapshot) { this._unsubscribeSnapshot(); this._unsubscribeSnapshot = null; }
+    const ref = this.docRefForUser(user.uid);
+    this._unsubscribeSnapshot = ref.onSnapshot(
+      snap => { if (snap.exists) onChange(snap.data()); },
+      err => { console.error('Sync listener error', err); if (onError) onError(err); }
+    );
+    return this._unsubscribeSnapshot;
+  },
+
+  stopSubscription() {
+    if (this._unsubscribeSnapshot) { this._unsubscribeSnapshot(); this._unsubscribeSnapshot = null; }
+  },
+};
+
 const monthKey = (dateStr) => dateStr.slice(0, 7);
 
 const formatDate = (dateStr) => {
@@ -1688,6 +1888,10 @@ function App() {
   const [toastMsg, showToast] = useToast();
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [syncUser, setSyncUser] = useState(null); // { uid, displayName, email, photoURL } | null
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | synced | error
+  const [syncError, setSyncError] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Load from storage
   useEffect(() => {
@@ -1763,6 +1967,150 @@ function App() {
       storageAdapter.set('pera-log:theme', JSON.stringify(next)).catch(e => console.error(e));
       return next;
     });
+  }, []);
+
+  // ---- Cloud sync wiring (Google Sign-In) ----
+  // Applying a snapshot pulled from Firestore updates local state + storage
+  // without re-triggering a push back to the cloud (avoids echo loops).
+  const applyingRemoteRef = React.useRef(false);
+
+  const applyRemoteSnapshot = useCallback((data) => {
+    applyingRemoteRef.current = true;
+    if (data.transactions) { setTransactions(data.transactions); storageAdapter.set('pera-log:transactions', JSON.stringify(data.transactions)); }
+    if (data.budgets) { setBudgets(data.budgets); storageAdapter.set('pera-log:budgets', JSON.stringify(data.budgets)); }
+    if (data.dailyBudgets) { setDailyBudgets(data.dailyBudgets); storageAdapter.set('pera-log:dailyBudgets', JSON.stringify(data.dailyBudgets)); }
+    if (data.goals) { setGoals(data.goals); storageAdapter.set('pera-log:goals', JSON.stringify(data.goals)); }
+    if (data.recurring) { setRecurring(data.recurring); storageAdapter.set('pera-log:recurring', JSON.stringify(data.recurring)); }
+    if (data.pinnedShortcuts) { setPinnedShortcuts(data.pinnedShortcuts); storageAdapter.set('pera-log:pinnedShortcuts', JSON.stringify(data.pinnedShortcuts)); }
+    setTimeout(() => { applyingRemoteRef.current = false; }, 0);
+  }, []);
+
+  // Watch Firebase's own auth state. This picks up an existing Google session
+  // automatically (e.g. after a page reload) without the person re-clicking
+  // sign-in every time.
+  useEffect(() => {
+    const unsubscribe = syncEngine.onAuthChange((user) => {
+      setAuthChecked(true);
+      if (user) {
+        setSyncUser({ uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL });
+      } else {
+        setSyncUser(null);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  // Subscribe to this account's synced document whenever signed in.
+  useEffect(() => {
+    if (!syncUser) return;
+    let cancelled = false;
+    setSyncStatus('syncing');
+    setSyncError(null);
+    syncEngine.subscribe(
+      (data) => { if (!cancelled) { applyRemoteSnapshot(data); setSyncStatus('synced'); } },
+      (err) => { if (!cancelled) { setSyncStatus('error'); setSyncError(err.message || 'Sync error'); } }
+    );
+    return () => { cancelled = true; syncEngine.stopSubscription(); };
+  }, [syncUser, applyRemoteSnapshot]);
+
+  // Debounced push: whenever local data changes (and it wasn't just applied
+  // FROM the cloud), push a fresh snapshot up, coalescing rapid edits.
+  const pushTimerRef = React.useRef(null);
+  const pushToCloud = useCallback(() => {
+    if (!syncUser || applyingRemoteRef.current) return;
+    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(async () => {
+      try {
+        setSyncStatus('syncing');
+        await syncEngine.pushSnapshot({
+          transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts,
+        });
+        setSyncStatus('synced');
+        setSyncError(null);
+      } catch (e) {
+        setSyncStatus('error');
+        setSyncError(e.message || 'Could not sync');
+      }
+    }, 1200);
+  }, [syncUser, transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts]);
+
+  useEffect(() => { pushToCloud(); }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, pushToCloud]);
+
+  // Signs in with Google, then either pulls existing cloud data for this
+  // account or pushes what's currently on this device as the starting point.
+  //
+  // One wrinkle: if this account has never synced before (no cloud doc yet)
+  // AND this device already has real data, we don't push silently. Pushing
+  // here just means "this device's copy is now the cloud copy" — harmless if
+  // this is genuinely the first device, but if another device signs in later
+  // expecting its own local data to survive, a same-shaped silent push there
+  // would blow this away instead of merging. So the fix is: only skip the
+  // prompt when there's nothing local worth protecting.
+  const finishSignIn = useCallback(async (user) => {
+    setSyncUser({ uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL });
+    setSyncStatus('synced');
+  }, []);
+
+  const signInAndSync = useCallback(async () => {
+    setSyncStatus('syncing');
+    setSyncError(null);
+    try {
+      const user = await syncEngine.signInWithGoogle();
+      const existing = await syncEngine.fetchSnapshot();
+      if (existing) {
+        applyRemoteSnapshot(existing);
+        await finishSignIn(user);
+        return { ok: true };
+      }
+
+      const hasLocalData = transactions.length > 0 || goals.length > 0 || recurring.length > 0
+        || Object.keys(budgets).length > 0 || Object.keys(dailyBudgets || {}).length > 0;
+
+      if (!hasLocalData) {
+        await syncEngine.pushSnapshot({ transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts });
+        await finishSignIn(user);
+        return { ok: true };
+      }
+
+      // First sync for this account, but this device isn't empty — confirm
+      // before treating this device's data as the starting point.
+      return await new Promise((resolve) => {
+        setConfirmDelete({
+          confirmTitle: 'Use this device\'s data as the starting point?',
+          confirmBody: 'This Google account has no synced data yet, and this device already has its own log, budgets, goals, or recurring expenses. Continuing will upload this device\'s data to the cloud. If you meant to pull data from elsewhere instead, sign out and check you\'re using the right account first.',
+          confirmLabel: 'Use this device\'s data',
+          onConfirm: async () => {
+            try {
+              await syncEngine.pushSnapshot({ transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts });
+              await finishSignIn(user);
+              resolve({ ok: true });
+            } catch (e) {
+              setSyncStatus('error');
+              const message = e.message || 'Could not sync';
+              setSyncError(message);
+              resolve({ ok: false, error: message });
+            }
+          },
+          onCancel: async () => {
+            await syncEngine.signOut();
+            setSyncStatus('idle');
+            resolve({ ok: false, error: 'Sign-in cancelled.' });
+          },
+        });
+      });
+    } catch (e) {
+      setSyncStatus('error');
+      const message = e.code === 'auth/popup-closed-by-user' ? 'Sign-in was closed before finishing.' : (e.message || 'Could not sign in');
+      setSyncError(message);
+      return { ok: false, error: message };
+    }
+  }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, applyRemoteSnapshot, finishSignIn]);
+
+  const signOutOfSync = useCallback(async () => {
+    await syncEngine.signOut();
+    setSyncUser(null);
+    setSyncStatus('idle');
+    setSyncError(null);
   }, []);
 
   const addTransaction = (tx) => {
@@ -1894,6 +2242,11 @@ function App() {
           saveRecurring={saveRecurring}
           showToast={showToast}
           requestDelete={setConfirmDelete}
+          syncUser={syncUser}
+          syncStatus={syncStatus}
+          syncError={syncError}
+          signInAndSync={signInAndSync}
+          signOutOfSync={signOutOfSync}
         />
       )}
 
@@ -1905,7 +2258,7 @@ function App() {
           body={confirmDelete.confirmBody || "This can't be undone."}
           confirmLabel={confirmDelete.confirmLabel || "Delete"}
           onConfirm={() => { confirmDelete.onConfirm(); setConfirmDelete(null); }}
-          onCancel={() => setConfirmDelete(null)}
+          onCancel={() => { if (confirmDelete.onCancel) confirmDelete.onCancel(); setConfirmDelete(null); }}
         />
       )}
 
@@ -3176,9 +3529,10 @@ function StatsTab({ transactions }) {
   );
 }
 
-function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals, recurring, pinnedShortcuts, savePinnedShortcuts, saveTransactions, saveBudgets, saveGoals, saveRecurring, showToast, requestDelete }) {
+function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals, recurring, pinnedShortcuts, savePinnedShortcuts, saveTransactions, saveBudgets, saveGoals, saveRecurring, showToast, requestDelete, syncUser, syncStatus, syncError, signInAndSync, signOutOfSync }) {
   const fileInputRef = React.useRef(null);
   const [importError, setImportError] = useState(null);
+  const [signingIn, setSigningIn] = useState(false);
 
   const buildExportPayload = () => ({
     app: 'pera-log',
@@ -3272,12 +3626,98 @@ function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals,
   const recurringCount = recurring.length;
   const budgetCount = Object.keys(budgets).length + Object.keys(dailyBudgets || {}).length;
 
+  const resetLinkForm = () => {
+    setLinkMode(null);
+    setCodeInput('');
+    setCodeConfirmInput('');
+    setShowCode(false);
+    setLinkFormError(null);
+  };
+
+  const handleSignIn = async () => {
+    setSigningIn(true);
+    const result = await signInAndSync();
+    setSigningIn(false);
+    if (result.ok) {
+      showToast('Signed in — synced');
+    }
+    // On failure, syncError already holds a message shown in the panel below.
+  };
+
+  const handleSignOut = () => {
+    requestDelete({
+      confirmTitle: 'Sign out of sync?',
+      confirmBody: 'This device will keep its current data, but will stop sending or receiving updates until you sign in again with the same Google account.',
+      confirmLabel: 'Sign out',
+      onConfirm: () => { signOutOfSync(); showToast('Signed out of sync'); },
+    });
+  };
+
   return (
     <div>
       <div className="section-title">Backup & transfer</div>
       <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -8, marginBottom: 18, lineHeight: 1.6}}>
-        Your data is saved only on this device and browser. Use export and import to move a copy between devices.
+        Your data is saved only on this device and browser. Sign in below for automatic sync, or use export and import to move a one-time copy between them.
       </p>
+
+      <div className="form-panel">
+        <div className="section-title" style={{fontSize: 16}}>Sync between devices</div>
+        {!syncEngine.isAvailable() && (
+          <p style={{fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.6}}>
+            Sync isn't available right now — check your internet connection and reload the page.
+          </p>
+        )}
+        {syncEngine.isAvailable() && !syncUser && (
+          <>
+            <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -6, marginBottom: 14, lineHeight: 1.6}}>
+              Sign in with Google to keep your phone and laptop in sync automatically. Sign in with the
+              same account on both devices — your Google account is the only thing that links them, no
+              separate password or code to remember.
+            </p>
+            {syncStatus === 'error' && syncError && (
+              <p style={{fontSize: 12, color: 'var(--clay)', marginBottom: 12}}>{syncError}</p>
+            )}
+            <button className="btn google-signin-btn" onClick={handleSignIn} disabled={signingIn}>
+              <svg width="16" height="16" viewBox="0 0 48 48" style={{flexShrink: 0}}>
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.5-.4-3.5z"/>
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.6 6 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.7 35 27 36 24 36c-5.2 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C41.9 35.9 44 30.4 44 24c0-1.3-.1-2.5-.4-3.5z"/>
+              </svg>
+              {signingIn ? 'Signing in…' : 'Sign in with Google'}
+            </button>
+          </>
+        )}
+
+        {syncUser && (
+          <div>
+            <div className="sync-account-row">
+              {syncUser.photoURL && <img src={syncUser.photoURL} alt="" className="sync-avatar" referrerPolicy="no-referrer" />}
+              <div>
+                <div className="sync-account-name">{syncUser.displayName || syncUser.email}</div>
+                {syncUser.email && syncUser.displayName && <div className="sync-account-email">{syncUser.email}</div>}
+              </div>
+            </div>
+            <div className="sync-status-row">
+              <span className={'sync-status-dot ' + syncStatus}></span>
+              <span className="sync-status-text">
+                {syncStatus === 'syncing' && 'Syncing…'}
+                {syncStatus === 'synced' && 'Synced'}
+                {syncStatus === 'error' && 'Sync error'}
+                {syncStatus === 'idle' && 'Connected'}
+              </span>
+            </div>
+            {syncStatus === 'error' && syncError && (
+              <p style={{fontSize: 12, color: 'var(--clay)', marginTop: 4}}>{syncError}</p>
+            )}
+            <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: 10, marginBottom: 14, lineHeight: 1.6}}>
+              Signed in. Changes here appear on your other devices signed into this same Google account
+              automatically, and theirs will appear here.
+            </p>
+            <button className="btn secondary" onClick={handleSignOut}>Sign out of sync</button>
+          </div>
+        )}
+      </div>
 
       <div className="stat-grid" style={{marginBottom: 24}}>
         <div className="stat-box">
