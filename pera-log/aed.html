@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pera Log</title>
+<title>Dirham Log</title>
 <style>
   :root {
     --ink: #1B2A2F;
@@ -11,8 +11,8 @@
     --paper: #FBF7EF;
     --paper-dim: #F1EBDD;
     --line: #D9D0BC;
-    --green: #3D7A5C;
-    --green-dim: #E7EFE8;
+    --green: #1F7A78;
+    --green-dim: #E0EEEC;
     --clay: #C05B3F;
     --clay-dim: #F5E5DF;
     --gold: #B8863A;
@@ -26,8 +26,8 @@
     --paper: #1A1815;
     --paper-dim: #242119;
     --line: #3A362C;
-    --green: #6FB88F;
-    --green-dim: #1F2E26;
+    --green: #5CC2BD;
+    --green-dim: #182F2E;
     --clay: #E08863;
     --clay-dim: #3A2620;
     --gold: #D9A94F;
@@ -291,6 +291,86 @@
     pointer-events: none;
   }
   .peso-input-wrap input { padding-left: 40px !important; }
+  .reveal-input-wrap {
+    position: relative;
+  }
+  .reveal-input-wrap input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .reveal-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+  .reveal-toggle:hover { text-decoration: underline; }
+  .sync-status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .sync-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ink-soft);
+    flex: 0 0 auto;
+  }
+  .sync-status-dot.synced { background: var(--green); }
+  .sync-status-dot.syncing { background: var(--gold); animation: pulse-dot 1.2s ease-in-out infinite; }
+  .sync-status-dot.error { background: var(--clay); }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .sync-status-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .google-signin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--white);
+    color: var(--ink);
+    border: 1.5px solid var(--line);
+  }
+  .google-signin-btn:hover {
+    border-color: var(--ink);
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .sync-account-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .sync-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+  }
+  .sync-account-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .sync-account-email {
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
 
   /* LEDGER LIST */
   .day-group {
@@ -1074,7 +1154,77 @@
   }
   .modal-box .section-title { font-size: 17px; margin-bottom: 10px; }
   .modal-box p { font-size: 13px; color: var(--ink-soft); margin: 0 0 18px 0; line-height: 1.5; }
+  .input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    padding: 9px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--green);
+  }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .tutorial-panel {
+    background: var(--white);
+    border: 1.5px solid var(--ink);
+    max-width: 560px;
+    width: 100%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .tutorial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1.5px solid var(--line);
+    flex: 0 0 auto;
+  }
+  .tutorial-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .tutorial-close:hover { color: var(--clay); }
+  .tutorial-body {
+    padding: 20px 24px 24px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+  }
+  .tutorial-body p {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.65;
+    margin: 0 0 16px 0;
+  }
+  .tutorial-body h3 {
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 8px 0;
+  }
+  .tutorial-body strong { color: var(--ink); font-weight: 600; }
+  .tutorial-footer-note {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    margin-top: 4px;
+  }
 
   .loading-wrap {
     padding: 60px 20px;
@@ -1124,6 +1274,9 @@
     outline-offset: 2px;
   }
 </style>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -1433,22 +1586,60 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 </script>
 
 <script type="text/babel" data-presets="react">
+
+
+
 const { useState, useEffect, useMemo, useCallback } = React;
 
+const APP_NAME = 'Dirham Log';
+
 const CATEGORIES = [
-  { id: 'food', name: 'Food & meals', icon: 'FD', type: 'expense' },
-  { id: 'transpo', name: 'Transportation', icon: 'TR', type: 'expense' },
-  { id: 'load', name: 'Load & data', icon: 'LD', type: 'expense' },
-  { id: 'school', name: 'School supplies', icon: 'SC', type: 'expense' },
-  { id: 'printing', name: 'Printing & projects', icon: 'PR', type: 'expense' },
-  { id: 'dorm', name: 'Dorm & utilities', icon: 'DM', type: 'expense' },
-  { id: 'org', name: 'Org fees & events', icon: 'OR', type: 'expense' },
-  { id: 'social', name: 'Going out', icon: 'GO', type: 'expense' },
+  { id: 'groceries', name: 'Groceries', icon: 'GR', type: 'expense' },
+  { id: 'food', name: 'Eating out & delivery', icon: 'FD', type: 'expense' },
+  { id: 'transpo', name: 'Transport & Nol', icon: 'TR', type: 'expense' },
+  { id: 'fuel', name: 'Fuel, Salik & parking', icon: 'FS', type: 'expense' },
+  { id: 'housing', name: 'Rent & housing', icon: 'RH', type: 'expense' },
+  { id: 'utilities', name: 'DEWA & utilities', icon: 'UT', type: 'expense' },
+  { id: 'mobile', name: 'Mobile & internet', icon: 'MB', type: 'expense' },
+  { id: 'remit', name: 'Sent home', icon: 'SH', type: 'expense' },
+  { id: 'gov', name: 'Visa, ID & government fees', icon: 'VS', type: 'expense' },
+  { id: 'health', name: 'Health & insurance', icon: 'HL', type: 'expense' },
+  { id: 'school', name: 'School & tuition', icon: 'SC', type: 'expense' },
+  { id: 'social', name: 'Going out & leisure', icon: 'GO', type: 'expense' },
   { id: 'subs', name: 'Subscriptions', icon: 'SB', type: 'expense' },
-  { id: 'health', name: 'Health & toiletries', icon: 'HL', type: 'expense' },
   { id: 'savings', name: 'Savings', icon: 'SV', type: 'expense' },
   { id: 'other', name: 'Other', icon: '--', type: 'expense' },
 ];
+
+// Common UAE bills, offered as one-tap starters on an empty Recurring tab.
+const RECURRING_PRESETS = [
+  { name: 'Rent', category: 'housing', freq: 'quarterly' },
+  { name: 'DEWA bill', category: 'utilities', freq: 'monthly' },
+  { name: 'Mobile & internet plan', category: 'mobile', freq: 'monthly' },
+  { name: 'Salik top-up', category: 'fuel', freq: 'monthly' },
+  { name: 'Health insurance', category: 'health', freq: 'yearly' },
+  { name: 'Visa & Emirates ID', category: 'gov', freq: 'yearly' },
+];
+
+// Earlier AED builds used the Philippine student category set. Anything saved
+// under an old id is moved to its closest UAE equivalent when data loads,
+// syncs in, or is imported, so no entry ends up uncategorised.
+const LEGACY_CATEGORY_MAP = { load: 'mobile', dorm: 'housing', printing: 'other', org: 'other' };
+const mapCat = (id) => LEGACY_CATEGORY_MAP[id] || id;
+const fixTx = (list) => (Array.isArray(list) ? list.map(t => (t && t.category ? { ...t, category: mapCat(t.category) } : t)) : list);
+const fixKeys = (obj) => {
+  if (!obj || typeof obj !== 'object') return obj;
+  const out = {};
+  Object.keys(obj).forEach(k => { const m = mapCat(k); out[m] = (out[m] || 0) + obj[k]; });
+  return out;
+};
+const normalizeData = (d) => ({
+  ...d,
+  ...(d.transactions ? { transactions: fixTx(d.transactions) } : {}),
+  ...(d.recurring ? { recurring: fixTx(d.recurring) } : {}),
+  ...(d.budgets ? { budgets: fixKeys(d.budgets) } : {}),
+  ...(d.dailyBudgets ? { dailyBudgets: fixKeys(d.dailyBudgets) } : {}),
+});
 
 const peso = (n) => {
   const v = Number(n) || 0;
@@ -1466,36 +1657,494 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 
 // Storage adapter: uses window.storage when available (Claude.ai artifacts),
 // falls back to localStorage when opened as a standalone HTML file.
-const STORAGE_PREFIX = "pera-log-aed:";
-
 const hasArtifactStorage = typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function';
 
 const storageAdapter = {
   async get(key) {
-    const prefixed = STORAGE_PREFIX + key;
     if (hasArtifactStorage) {
-      try { return await window.storage.get(prefixed); }
+      try { return await window.storage.get(key); }
       catch (e) { return null; }
     }
     try {
-      const raw = window.localStorage.getItem(prefixed);
-      return raw ? { key: prefixed, value: raw } : null;
+      let raw = window.localStorage.getItem(key);
+      // Older AED builds stored data as 'pera-log-aed:pera-log:<name>'; read it once so nothing is lost.
+      if (raw === null && key.startsWith('aed:')) raw = window.localStorage.getItem('pera-log-aed:pera-log:' + key.slice(4));
+      return raw ? { key, value: raw } : null;
     } catch (e) { return null; }
   },
   async set(key, value) {
-    const prefixed = STORAGE_PREFIX + key;
     if (hasArtifactStorage) {
-      try { return await window.storage.set(prefixed, value); }
+      try { return await window.storage.set(key, value); }
       catch (e) { return null; }
     }
     try {
-      window.localStorage.setItem(prefixed, value);
-      return { key: prefixed, value };
+      window.localStorage.setItem(key, value);
+      return { key, value };
     } catch (e) { return null; }
   }
 };
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+// Formats "today" (or any Date) using the device's LOCAL calendar date, not
+// UTC. toISOString() always converts to UTC first, which silently shows the
+// wrong day for hours around midnight in timezones ahead of UTC (like PH,
+// UTC+8) — e.g. 7am Sept 18 in Manila is still Sept 17 in UTC.
+function toLocalDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+const todayStr = () => toLocalDateStr(new Date());
+
+// ---- End-to-end encryption (E2EE) for synced data ----
+// Everything below encrypts/decrypts client-side so that Firestore — and
+// therefore the Firebase project owner, including via the Console or an
+// admin SDK — only ever sees ciphertext. There is deliberately no path in
+// this code that could send a plaintext data key, passphrase, or recovery
+// code to Firestore or any server; the only two things that can unlock the
+// data are the person's passphrase and their self-saved recovery code,
+// neither of which this app ever stores or transmits.
+//
+// Design: one random 256-bit "data key" actually encrypts the synced data.
+// That data key is itself wrapped (encrypted) twice — once under a key
+// derived from the person's passphrase (PBKDF2, high iteration count, a
+// random salt), and once under a random 256-bit "recovery key" shown to the
+// person once at setup. Both wrapped copies are harmless ciphertext, safe to
+// store in Firestore: either the passphrase or the recovery code unwraps the
+// same underlying data key. Once unwrapped on a device, the raw data key is
+// cached in that device's own IndexedDB (never sent anywhere) so future
+// opens on that device skip straight to decrypting — no re-prompt.
+const e2ee = {
+  PBKDF2_ITERATIONS: 600000,
+
+  // ---- base64 <-> ArrayBuffer helpers ----
+  bufToB64(buf) {
+    return btoa(String.fromCharCode(...new Uint8Array(buf)));
+  },
+  b64ToBuf(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  },
+
+  // ---- random material ----
+  randomBytes(len) {
+    return crypto.getRandomValues(new Uint8Array(len));
+  },
+  // A 256-bit recovery key, shown to the person as a readable grouped code
+  // like "XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" (base32-ish, no ambiguous chars).
+  generateRecoveryCode() {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
+    const bytes = this.randomBytes(30); // 30 chars of entropy, grouped below
+    let chars = '';
+    for (let i = 0; i < bytes.length; i++) chars += alphabet[bytes[i] % alphabet.length];
+    return chars.match(/.{1,4}/g).slice(0, 6).join('-');
+  },
+
+  // ---- key derivation & wrapping ----
+  async deriveKeyFromPassphrase(passphrase, saltB64) {
+    const salt = this.b64ToBuf(saltB64);
+    const baseKey = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: this.PBKDF2_ITERATIONS, hash: 'SHA-256' },
+      baseKey, { name: 'AES-GCM', length: 256 }, false, ['wrapKey', 'unwrapKey']
+    );
+  },
+  async importRecoveryKey(recoveryCode) {
+    // The recovery code IS the key material (high entropy already), just
+    // normalized and hashed to a fixed-length key rather than used raw.
+    const normalized = recoveryCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalized));
+    return crypto.subtle.importKey('raw', digest, { name: 'AES-GCM' }, false, ['wrapKey', 'unwrapKey']);
+  },
+  async generateDataKey() {
+    return crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+  },
+  async wrapDataKey(dataKey, wrappingKey) {
+    const iv = this.randomBytes(12);
+    const wrapped = await crypto.subtle.wrapKey('raw', dataKey, wrappingKey, { name: 'AES-GCM', iv });
+    return { iv: this.bufToB64(iv), wrapped: this.bufToB64(wrapped) };
+  },
+  async unwrapDataKey(wrappedRecord, wrappingKey) {
+    const iv = this.b64ToBuf(wrappedRecord.iv);
+    const wrapped = this.b64ToBuf(wrappedRecord.wrapped);
+    // extractable: true to match generateDataKey — this key only ever goes
+    // into this device's own IndexedDB cache (keyVault), never anywhere
+    // else, so there's no reason to make it non-extractable, and keeping
+    // it consistent with generateDataKey avoids relying on browsers'
+    // less-exercised, historically inconsistent handling of storing
+    // non-extractable CryptoKeys via structured clone.
+    return crypto.subtle.unwrapKey(
+      'raw', wrapped, wrappingKey, { name: 'AES-GCM', iv },
+      { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']
+    );
+  },
+
+  // ---- data encryption ----
+  async encryptJSON(dataKey, obj) {
+    const iv = this.randomBytes(12);
+    const plaintext = new TextEncoder().encode(JSON.stringify(obj));
+    const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, dataKey, plaintext);
+    return { iv: this.bufToB64(iv), ciphertext: this.bufToB64(ciphertext) };
+  },
+  async decryptJSON(dataKey, record) {
+    const iv = this.b64ToBuf(record.iv);
+    const ciphertext = this.b64ToBuf(record.ciphertext);
+    const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, dataKey, ciphertext);
+    return JSON.parse(new TextDecoder().decode(plaintext));
+  },
+};
+
+// ---- Per-device cache for the unwrapped data key (IndexedDB) ----
+// Deliberately separate from storageAdapter/localStorage: this holds live
+// CryptoKey objects, not JSON, and is scoped per browser profile, never
+// synced anywhere. Losing it just means re-entering the passphrase or
+// recovery code on that device — it holds no data itself.
+const keyVault = {
+  _dbPromise: null,
+
+  _openDb() {
+    if (this._dbPromise) return this._dbPromise;
+    this._dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open('aed-log-vault', 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('keys');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return this._dbPromise;
+  },
+
+  async getCachedDataKey(uid) {
+    try {
+      const db = await this._openDb();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction('keys', 'readonly');
+        const req = tx.objectStore('keys').get(uid);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      console.error('Vault read failed', e);
+      return null;
+    }
+  },
+
+  async setCachedDataKey(uid, dataKey) {
+    try {
+      const db = await this._openDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction('keys', 'readwrite');
+        tx.objectStore('keys').put(dataKey, uid);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.error('Vault write failed', e);
+    }
+  },
+
+  async clearCachedDataKey(uid) {
+    try {
+      const db = await this._openDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction('keys', 'readwrite');
+        tx.objectStore('keys').delete(uid);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.error('Vault clear failed', e);
+    }
+  },
+};
+
+// ---- Cloud sync (Firebase, Google Sign-In) ----
+// Optional layer on top of storageAdapter: when the person signs in with
+// their Google account, data is also written to Firestore under a document
+// keyed by their stable Firebase Auth UID, so the same signed-in account on
+// a second device reads the same data. Security is real per-account access
+// control enforced by Firestore rules (request.auth.uid == the document's
+// owner), not obscurity — see the rules pasted into the Firebase console.
+// On top of that, the synced payload itself is end-to-end encrypted (see
+// e2ee/keyVault above): Firestore, and therefore this project's owner, only
+// ever sees ciphertext plus the wrapped-key envelopes needed to unlock it
+// with a passphrase or recovery code — never a usable key on its own.
+// localStorage remains the source of truth for instant, offline-safe reads,
+// and stays plaintext there; Firestore is a best-effort encrypted mirror
+// kept in sync in the background.
+const firebaseConfig = {
+  apiKey: "AIzaSyAQNXL2YIJJBt0YzBziKMut16-JPdi8Di8",
+  authDomain: "pera-log.firebaseapp.com",
+  projectId: "pera-log",
+  appId: "1:225519178777:web:45ad93d84a6eedff7a4688",
+};
+
+const SYNC_DOC_COLLECTION = 'syncs';
+// Shares Dirham Log's document per account (so the existing Firestore rules and the
+// same passphrase/recovery code apply), but keeps AED data in its own encrypted
+// field, 'payloadAed', so the two apps never overwrite each other.
+
+const syncEngine = {
+  _app: null,
+  _auth: null,
+  _db: null,
+  _unsubscribeSnapshot: null,
+  _unsubscribeAuth: null,
+  _ready: false,
+
+  isAvailable() {
+    return typeof window !== 'undefined' && typeof window.firebase !== 'undefined';
+  },
+
+  init() {
+    if (this._ready) return true;
+    if (!this.isAvailable()) return false;
+    try {
+      if (!window.firebase.apps || !window.firebase.apps.length) {
+        this._app = window.firebase.initializeApp(firebaseConfig);
+      } else {
+        this._app = window.firebase.app();
+      }
+      this._auth = window.firebase.auth();
+      this._db = window.firebase.firestore();
+      this._ready = true;
+      return true;
+    } catch (e) {
+      console.error('Firebase init failed', e);
+      return false;
+    }
+  },
+
+  getCurrentUser() {
+    if (!this.init()) return null;
+    return this._auth.currentUser;
+  },
+
+  // Registers a callback fired whenever sign-in state changes (including on
+  // initial load, once Firebase has checked for an existing session).
+  onAuthChange(callback) {
+    if (!this.init()) { callback(null); return () => {}; }
+    if (this._unsubscribeAuth) this._unsubscribeAuth();
+    this._unsubscribeAuth = this._auth.onAuthStateChanged(callback);
+    return this._unsubscribeAuth;
+  },
+
+  async signInWithGoogle() {
+    if (!this.init()) throw new Error('Sync isn\'t available right now.');
+    const provider = new window.firebase.auth.GoogleAuthProvider();
+    const cred = await this._auth.signInWithPopup(provider);
+    return cred.user;
+  },
+
+  async signOut() {
+    if (!this.init()) return;
+    this.stopSubscription();
+    await this._auth.signOut();
+  },
+
+  docRefForUser(uid) {
+    return this._db.collection(SYNC_DOC_COLLECTION).doc(uid);
+  },
+
+  // ---- Encryption setup / unlock ----
+  // True once this doc has key-wrapping material in it (i.e. E2EE has been
+  // set up for this account, on any device, ever).
+  async hasEncryptionSetup(uid) {
+    const ref = this.docRefForUser(uid);
+    const snap = await ref.get();
+    return !!(snap.exists && snap.data().encSalt);
+  },
+
+  // First-ever setup for this account: generates a fresh data key, wraps it
+  // under both the passphrase and a freshly generated recovery code, and
+  // writes only the wrapped (ciphertext) envelopes to Firestore — never the
+  // raw data key, passphrase, or recovery code. Returns { recoveryCode,
+  // recoveredLegacyData } so the caller can show the code once and, if this
+  // account had pre-encryption plaintext data, use it as the payload to
+  // push rather than trusting local state alone (see the comment below on
+  // why that matters).
+  //
+  // Also cleans up: an account that synced before encryption existed has
+  // its old data sitting on the doc as plaintext fields (transactions,
+  // budgets, etc., not under payload). Setup is the one point where we can
+  // safely remove those, but removing them here means fetchSnapshot right
+  // after will find no payload and look exactly like a brand-new account —
+  // which is wrong if this device's local store happens to be empty (a
+  // different device than usual, or a fresh browser profile): the caller
+  // would then push an empty payload and the deleted plaintext data would
+  // be gone for good. So this method hands back what it deleted, and the
+  // caller uses recoveredLegacyData over local state when it's present,
+  // rather than only checking whether *this device* has local data.
+  // First-ever setup for this account. Uses a Firestore transaction so two
+  // devices racing to set up encryption at nearly the same moment can't
+  // both "win": whichever transaction commits first publishes its data key;
+  // the second one re-reads inside the transaction, sees encSalt already
+  // exists, and aborts instead of overwriting it with a different data key
+  // (which would silently strand the first device's cached key — it would
+  // no longer match what's in Firestore, breaking sync in a way that looks
+  // like a random error rather than a clear "already set up" message).
+  //
+  // Returns { alreadySetUp: true } if another device won the race, so the
+  // caller can fall back to the unlock flow instead. Otherwise generates a
+  // fresh data key, wraps it under both the passphrase and a freshly
+  // generated recovery code, and writes only the wrapped (ciphertext)
+  // envelopes to Firestore — never the raw data key, passphrase, or
+  // recovery code. Also returns recoveredLegacyData for accounts that
+  // synced before encryption existed (see the field-by-field comment
+  // below).
+  async setupEncryption(uid, passphrase) {
+    const dataKey = await e2ee.generateDataKey();
+    const saltB64 = e2ee.bufToB64(e2ee.randomBytes(16));
+    const passphraseKey = await e2ee.deriveKeyFromPassphrase(passphrase, saltB64);
+    const wrappedByPassphrase = await e2ee.wrapDataKey(dataKey, passphraseKey);
+    const recoveryCode = e2ee.generateRecoveryCode();
+    const recoveryKey = await e2ee.importRecoveryKey(recoveryCode);
+    const wrappedByRecovery = await e2ee.wrapDataKey(dataKey, recoveryKey);
+
+    const ref = this.docRefForUser(uid);
+    const LEGACY_PLAINTEXT_FIELDS = []; // AED never synced unencrypted; leave Dirham Log's fields alone
+
+    const outcome = await this._db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (snap.exists && snap.data().encSalt) {
+        // Someone else (almost certainly another device on this same
+        // account) already finished setup first. Don't touch their keys.
+        return { alreadySetUp: true };
+      }
+
+      const update = {
+        encSalt: saltB64,
+        wrappedKeyByPassphrase: wrappedByPassphrase,
+        wrappedKeyByRecovery: wrappedByRecovery,
+      };
+
+      let recoveredLegacyData = null;
+      if (snap.exists) {
+        const existingData = snap.data();
+        const found = {};
+        let hasLegacy = false;
+        for (const field of LEGACY_PLAINTEXT_FIELDS) {
+          if (field in existingData) {
+            update[field] = window.firebase.firestore.FieldValue.delete();
+            found[field] = existingData[field];
+            hasLegacy = true;
+          }
+        }
+        if (hasLegacy) recoveredLegacyData = found;
+      }
+
+      tx.set(ref, update, { merge: true });
+      return { alreadySetUp: false, recoveredLegacyData };
+    });
+
+    if (outcome.alreadySetUp) {
+      return { alreadySetUp: true };
+    }
+
+    await keyVault.setCachedDataKey(uid, dataKey);
+    return { alreadySetUp: false, recoveryCode, recoveredLegacyData: outcome.recoveredLegacyData };
+  },
+
+  // Unlocks an existing account's data key using either the passphrase or
+  // the recovery code (whichever the person has), and caches it locally.
+  async unlockWithPassphrase(uid, passphrase) {
+    const snap = await this.docRefForUser(uid).get();
+    if (!snap.exists || !snap.data().encSalt) throw new Error('Encryption isn\'t set up for this account yet.');
+    const { encSalt, wrappedKeyByPassphrase } = snap.data();
+    const passphraseKey = await e2ee.deriveKeyFromPassphrase(passphrase, encSalt);
+    let dataKey;
+    try {
+      dataKey = await e2ee.unwrapDataKey(wrappedKeyByPassphrase, passphraseKey);
+    } catch (e) {
+      throw new Error('That passphrase doesn\'t match.');
+    }
+    await keyVault.setCachedDataKey(uid, dataKey);
+    return dataKey;
+  },
+
+  async unlockWithRecoveryCode(uid, recoveryCode) {
+    const snap = await this.docRefForUser(uid).get();
+    if (!snap.exists || !snap.data().wrappedKeyByRecovery) throw new Error('Encryption isn\'t set up for this account yet.');
+    const recoveryKey = await e2ee.importRecoveryKey(recoveryCode);
+    let dataKey;
+    try {
+      dataKey = await e2ee.unwrapDataKey(snap.data().wrappedKeyByRecovery, recoveryKey);
+    } catch (e) {
+      throw new Error('That recovery code doesn\'t match.');
+    }
+    await keyVault.setCachedDataKey(uid, dataKey);
+    return dataKey;
+  },
+
+  async getUnlockedDataKey(uid) {
+    return keyVault.getCachedDataKey(uid);
+  },
+
+  // Pulls the current cloud snapshot for the signed-in user, decrypted, or
+  // null if nothing is there yet. Requires an already-unlocked (cached) data
+  // key on this device — call unlockWithPassphrase/unlockWithRecoveryCode
+  // first if getUnlockedDataKey comes back empty.
+  async fetchSnapshot() {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('Sign in with Google first.');
+    const ref = this.docRefForUser(user.uid);
+    const snap = await ref.get();
+    if (!snap.exists || !snap.data().payloadAed) return null;
+    const dataKey = await this.getUnlockedDataKey(user.uid);
+    if (!dataKey) throw new Error('Locked — enter your passphrase or recovery code first.');
+    return e2ee.decryptJSON(dataKey, snap.data().payloadAed);
+  },
+
+  // Encrypts and writes a full snapshot (all local data) up to the cloud
+  // for this user. Requires an already-unlocked data key on this device.
+  async pushSnapshot(data) {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('Sign in with Google first.');
+    const dataKey = await this.getUnlockedDataKey(user.uid);
+    if (!dataKey) throw new Error('Locked — enter your passphrase or recovery code first.');
+    const payload = await e2ee.encryptJSON(dataKey, data);
+    const ref = this.docRefForUser(user.uid);
+    this._lastIv = payload.iv; // lets subscribe skip our own echo
+    await ref.set({ payloadAed: payload, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  },
+
+  // Subscribes to live changes on the signed-in user's document; calls
+  // onChange(data) with decrypted data whenever it updates (including the
+  // first read). Decryption is async, so this fires the callback once the
+  // decrypt resolves rather than synchronously inside onSnapshot.
+  subscribe(onChange, onError) {
+    const user = this.getCurrentUser();
+    if (!user) { if (onError) onError(new Error('Sign in with Google first.')); return () => {}; }
+    if (this._unsubscribeSnapshot) { this._unsubscribeSnapshot(); this._unsubscribeSnapshot = null; }
+    this._lastIv = null;
+    const ref = this.docRefForUser(user.uid);
+    this._unsubscribeSnapshot = ref.onSnapshot(
+      snap => {
+        if (!snap.exists || !snap.data().payloadAed) return;
+        // The document is shared with Dirham Log, so ignore changes that aren't ours.
+        if (snap.data().payloadAed.iv === this._lastIv) return;
+        this._lastIv = snap.data().payloadAed.iv;
+        this.getUnlockedDataKey(user.uid).then(dataKey => {
+          if (!dataKey) { if (onError) onError(new Error('Locked — enter your passphrase or recovery code first.')); return; }
+          return e2ee.decryptJSON(dataKey, snap.data().payloadAed).then(onChange);
+        }).catch(err => {
+          console.error('Decrypt failed', err);
+          if (onError) onError(err);
+        });
+      },
+      err => { console.error('Sync listener error', err); if (onError) onError(err); }
+    );
+    return this._unsubscribeSnapshot;
+  },
+
+  stopSubscription() {
+    if (this._unsubscribeSnapshot) { this._unsubscribeSnapshot(); this._unsubscribeSnapshot = null; }
+  },
+};
 
 const monthKey = (dateStr) => dateStr.slice(0, 7);
 
@@ -1535,6 +2184,96 @@ function Toast({ msg }) {
   return <div className="toast">{msg}</div>;
 }
 
+function TutorialPanel({ onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="tutorial-panel" onClick={e => e.stopPropagation()}>
+        <div className="tutorial-header">
+          <div className="section-title serif" style={{margin: 0}}>How Dirham Log works</div>
+          <button className="tutorial-close" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <div className="tutorial-body">
+          <p>
+            Dirham Log tracks your real money as it actually moves — salary coming in, spending going out.
+            It's not a budget you set once and forget; it's a running record of your actual cash.
+          </p>
+
+          <h3>The basics</h3>
+          <p>
+            Log things as they happen: salary or other income you received, or something you spent. Your <strong>Current
+            Balance</strong> at the top is calculated from these entries — you never type a balance in directly,
+            the log figures it out for you.
+          </p>
+
+          <h3>"Not in balance" entries</h3>
+          <p>
+            Sometimes you'll log an expense from the past that doesn't have matching income on record —
+            for example, backfilling spending from before you started tracking closely. Mark it
+            <strong> "don't subtract from current balance"</strong> and it'll still count in your history,
+            budgets, and analytics — it just won't drag your live balance into a false negative for money
+            that came and went before you were tracking it.
+          </p>
+
+          <h3>Count my cash</h3>
+          <p>
+            If what's in your wallet or bank account doesn't match what the app calculates, don't just add the
+            difference as income and hope for the best — use <strong>Count my cash</strong> on the Log tab
+            instead. It shows you the exact gap between what the log expects and what you actually have,
+            and logs it honestly as a clearly labeled adjustment.
+          </p>
+
+          <h3>Monthly vs Daily budgets</h3>
+          <p>
+            On the Budgets tab, <strong>Monthly</strong> tracks a category's spending for the whole month.
+            <strong> Daily</strong> gives that category a fresh allowance every day — it resets to AED 0 spent
+            at midnight, and nothing carries over. Yesterday's numbers still show up in Daily history so you
+            can see the pattern, but they don't affect today's limit.
+          </p>
+
+          <h3>Made for life in the UAE</h3>
+          <p>
+            Everything is in dirhams. Categories cover the usual costs — groceries, Nol and Salik, DEWA, mobile
+            plans, visa and Emirates ID fees — plus <strong>Sent home</strong> for money you transfer to family.
+            Recurring items can repeat every 3 months (for rent cheques) or yearly (for renewals) and warn you
+            two weeks ahead. Weeks start on Monday.
+          </p>
+
+          <h3>Syncing across your devices</h3>
+          <p>
+            Sign in with Google on the <strong>Backup</strong> tab to keep your log the same on your phone and
+            your laptop. Once you're signed in on both, new entries on one show up on the other automatically —
+            you don't need to do anything else.
+          </p>
+          <p>
+            Signing in the first time on a second device pulls down whatever's already synced for that account.
+            If a device has its own data and nothing has synced for that account yet, Dirham Log will ask before
+            uploading anything, so you don't accidentally overwrite a device you meant to pull from instead.
+          </p>
+          <p>
+            Sync is tied to your Google account, not the browser — if you're not signed in, or you're signed
+            into a different account, your data stays local to that device only. <strong>Export</strong> and
+            <strong> Import</strong> on the Backup tab still work anytime, sync or no sync, if you want a manual
+            copy of your data.
+          </p>
+
+          <h3>Your synced data is encrypted</h3>
+          <p>
+            The first time you sign in, you'll set a passphrase. It encrypts your data on your device before
+            it's ever sent to sync — so what's stored can't be read without that passphrase, not even by
+            whoever runs this app. You'll get a one-time recovery code right after; save it somewhere safe,
+            since it's the only way back in if you forget your passphrase. Each new device asks for the
+            passphrase (or the recovery code) once, then remembers it — no re-entering it every time. If you also use Pera Log with this same Google account, the two share one passphrase and recovery code, but keep their data separate.
+          </p>
+
+          <p className="tutorial-footer-note">
+            You can reopen this anytime by tapping the <strong>?</strong> icon in the top right.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ConfirmModal({ title, body, confirmLabel, onConfirm, onCancel }) {
   return (
     <div className="modal-overlay" onClick={onCancel}>
@@ -1550,6 +2289,139 @@ function ConfirmModal({ title, body, confirmLabel, onConfirm, onCancel }) {
   );
 }
 
+// Handles all three moments the person needs to interact with E2EE:
+// - "setup": first-ever sync for this Google account. Asks for a new
+//   passphrase (twice, to catch typos), explains what it means and that it
+//   can't be recovered by anyone else, then on submit generates the keys
+//   and shows the recovery code once.
+// - "unlock": this account has synced before, but this device doesn't have
+//   the cached data key (new device, or cleared browser data). Asks for
+//   either the passphrase or the recovery code.
+// - "showRecoveryCode": step shown right after setup succeeds, displaying
+//   the code with a copy affordance and a confirmation checkbox before
+//   closing, since this is the one and only time it's shown.
+function EncryptionModal({ mode, onSetup, onUnlock, onDone, onCancel, busy, error }) {
+  const [passphrase, setPassphrase] = useState('');
+  const [passphraseConfirm, setPassphraseConfirm] = useState('');
+  const [unlockMethod, setUnlockMethod] = useState('passphrase'); // or 'recovery'
+  const [unlockValue, setUnlockValue] = useState('');
+  const [recoveryCode, setRecoveryCode] = useState(null);
+  const [savedConfirmed, setSavedConfirmed] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  if (mode === 'setup' && !recoveryCode) {
+    const canSubmit = passphrase.length >= 8 && passphrase === passphraseConfirm;
+    return (
+      <div className="modal-overlay">
+        <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="section-title serif">Protect your synced data</div>
+          <p>
+            Set a passphrase to encrypt your data before it leaves this device. It's separate from your
+            Google sign-in — nobody else, including whoever runs this app, can read your data without it.
+            You'll only need to enter it again the first time you use a new device.
+          </p>
+          <input
+            className="input" type="password" placeholder="Passphrase (at least 8 characters)"
+            value={passphrase} onChange={e => setPassphrase(e.target.value)} autoFocus
+          />
+          <input
+            className="input" type="password" placeholder="Confirm passphrase"
+            value={passphraseConfirm} onChange={e => setPassphraseConfirm(e.target.value)}
+            style={{marginTop: 8}}
+          />
+          <p style={{fontSize: '0.85em', opacity: 0.8, marginTop: 8}}>
+            There's no way to reset this passphrase if you forget it — but right after this, you'll get a
+            one-time recovery code you can save as a backup.
+          </p>
+          {error && <p style={{color: 'var(--clay)'}}>{error}</p>}
+          <div className="modal-actions">
+            <button className="btn secondary" onClick={onCancel} disabled={busy}>Cancel</button>
+            <button
+              className="btn" disabled={!canSubmit || busy}
+              onClick={() => onSetup(passphrase).then(code => setRecoveryCode(code)).catch(() => {})}
+            >
+              {busy ? 'Setting up…' : 'Continue'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (recoveryCode) {
+    return (
+      <div className="modal-overlay">
+        <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="section-title serif">Save your recovery code</div>
+          <p>
+            This is the only time you'll see this code. If you ever forget your passphrase, it's the only
+            way back into your data — write it down or save it in a password manager now.
+          </p>
+          <div style={{
+            fontFamily: 'monospace', fontSize: '1.05em', textAlign: 'center', padding: '12px',
+            background: 'var(--paper-dim)', border: '1.5px solid var(--line)', borderRadius: '4px', margin: '12px 0',
+            letterSpacing: '0.03em', wordBreak: 'break-all', lineHeight: 1.5, color: 'var(--ink)',
+          }}>
+            {recoveryCode}
+          </div>
+          <button
+            className="btn secondary"
+            onClick={() => { navigator.clipboard.writeText(recoveryCode).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }}
+          >
+            {copied ? 'Copied!' : 'Copy code'}
+          </button>
+          <label style={{display: 'flex', alignItems: 'center', gap: 8, marginTop: 16}}>
+            <input type="checkbox" checked={savedConfirmed} onChange={e => setSavedConfirmed(e.target.checked)} />
+            I've saved this somewhere safe
+          </label>
+          <div className="modal-actions">
+            <button className="btn" disabled={!savedConfirmed} onClick={onDone}>Done</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'unlock') {
+    return (
+      <div className="modal-overlay">
+        <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="section-title serif">Unlock your synced data</div>
+          <p>This device hasn't been unlocked yet. Enter your passphrase or recovery code to continue.</p>
+          <div style={{display: 'flex', gap: 8, marginBottom: 8}}>
+            <button
+              className={unlockMethod === 'passphrase' ? 'btn' : 'btn secondary'}
+              onClick={() => { setUnlockMethod('passphrase'); setUnlockValue(''); }}
+            >Passphrase</button>
+            <button
+              className={unlockMethod === 'recovery' ? 'btn' : 'btn secondary'}
+              onClick={() => { setUnlockMethod('recovery'); setUnlockValue(''); }}
+            >Recovery code</button>
+          </div>
+          <input
+            className="input"
+            type={unlockMethod === 'passphrase' ? 'password' : 'text'}
+            placeholder={unlockMethod === 'passphrase' ? 'Passphrase' : 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX'}
+            value={unlockValue} onChange={e => setUnlockValue(e.target.value)} autoFocus
+          />
+          {error && <p style={{color: 'var(--clay)'}}>{error}</p>}
+          <div className="modal-actions">
+            <button className="btn secondary" onClick={onCancel} disabled={busy}>Cancel</button>
+            <button
+              className="btn" disabled={!unlockValue || busy}
+              onClick={() => onUnlock(unlockMethod, unlockValue)}
+            >
+              {busy ? 'Unlocking…' : 'Unlock'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function App() {
   const [loaded, setLoaded] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -1562,30 +2434,45 @@ function App() {
   const [tab, setTab] = useState('home');
   const [toastMsg, showToast] = useToast();
   const [confirmDelete, setConfirmDelete] = useState(null);
+  // Drives the EncryptionModal: null (hidden), or { mode: 'setup' | 'unlock',
+  // uid, busy, error, resolve } where resolve is the pending promise's
+  // resolver, called once the person finishes (or cancels) the modal.
+  const [encryptionPrompt, setEncryptionPrompt] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [syncUser, setSyncUser] = useState(null); // { uid, displayName, email, photoURL } | null
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | synced | error
+  const [syncError, setSyncError] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Load from storage
   useEffect(() => {
     (async () => {
       try {
-        const [txRes, budRes, dailyRes, goalRes, recRes, pinRes, themeRes] = await Promise.allSettled([
-          storageAdapter.get('pera-log:transactions'),
-          storageAdapter.get('pera-log:budgets'),
-          storageAdapter.get('pera-log:dailyBudgets'),
-          storageAdapter.get('pera-log:goals'),
-          storageAdapter.get('pera-log:recurring'),
-          storageAdapter.get('pera-log:pinnedShortcuts'),
-          storageAdapter.get('pera-log:theme'),
+        const [txRes, budRes, dailyRes, goalRes, recRes, pinRes, themeRes, tutorialRes] = await Promise.allSettled([
+          storageAdapter.get('aed:transactions'),
+          storageAdapter.get('aed:budgets'),
+          storageAdapter.get('aed:dailyBudgets'),
+          storageAdapter.get('aed:goals'),
+          storageAdapter.get('aed:recurring'),
+          storageAdapter.get('aed:pinnedShortcuts'),
+          storageAdapter.get('aed:theme'),
+          storageAdapter.get('aed:hasSeenTutorial'),
         ]);
-        if (txRes.status === 'fulfilled' && txRes.value) setTransactions(JSON.parse(txRes.value.value));
-        if (budRes.status === 'fulfilled' && budRes.value) setBudgets(JSON.parse(budRes.value.value));
-        if (dailyRes.status === 'fulfilled' && dailyRes.value) setDailyBudgets(JSON.parse(dailyRes.value.value));
+        if (txRes.status === 'fulfilled' && txRes.value) setTransactions(fixTx(JSON.parse(txRes.value.value)));
+        if (budRes.status === 'fulfilled' && budRes.value) setBudgets(fixKeys(JSON.parse(budRes.value.value)));
+        if (dailyRes.status === 'fulfilled' && dailyRes.value) setDailyBudgets(fixKeys(JSON.parse(dailyRes.value.value)));
         if (goalRes.status === 'fulfilled' && goalRes.value) setGoals(JSON.parse(goalRes.value.value));
-        if (recRes.status === 'fulfilled' && recRes.value) setRecurring(JSON.parse(recRes.value.value));
+        if (recRes.status === 'fulfilled' && recRes.value) setRecurring(fixTx(JSON.parse(recRes.value.value)));
         if (pinRes.status === 'fulfilled' && pinRes.value) setPinnedShortcuts(JSON.parse(pinRes.value.value));
         if (themeRes.status === 'fulfilled' && themeRes.value) {
           setTheme(JSON.parse(themeRes.value.value));
         } else if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
           setTheme('dark');
+        }
+        const hasSeenTutorial = tutorialRes.status === 'fulfilled' && tutorialRes.value && JSON.parse(tutorialRes.value.value);
+        if (!hasSeenTutorial) {
+          setShowTutorial(true);
+          storageAdapter.set('aed:hasSeenTutorial', JSON.stringify(true)).catch(e => console.error(e));
         }
       } catch (e) {
         console.error('Load error', e);
@@ -1597,41 +2484,332 @@ function App() {
   // Persist helpers
   const saveTransactions = useCallback(async (next) => {
     setTransactions(next);
-    try { await storageAdapter.set('pera-log:transactions', JSON.stringify(next)); }
+    try { await storageAdapter.set('aed:transactions', JSON.stringify(next)); }
     catch (e) { console.error(e); }
   }, []);
   const saveBudgets = useCallback(async (next) => {
     setBudgets(next);
-    try { await storageAdapter.set('pera-log:budgets', JSON.stringify(next)); }
+    try { await storageAdapter.set('aed:budgets', JSON.stringify(next)); }
     catch (e) { console.error(e); }
   }, []);
   const saveDailyBudgets = useCallback(async (next) => {
     setDailyBudgets(next);
-    try { await storageAdapter.set('pera-log:dailyBudgets', JSON.stringify(next)); }
+    try { await storageAdapter.set('aed:dailyBudgets', JSON.stringify(next)); }
     catch (e) { console.error(e); }
   }, []);
   const saveGoals = useCallback(async (next) => {
     setGoals(next);
-    try { await storageAdapter.set('pera-log:goals', JSON.stringify(next)); }
+    try { await storageAdapter.set('aed:goals', JSON.stringify(next)); }
     catch (e) { console.error(e); }
   }, []);
   const saveRecurring = useCallback(async (next) => {
     setRecurring(next);
-    try { await storageAdapter.set('pera-log:recurring', JSON.stringify(next)); }
+    try { await storageAdapter.set('aed:recurring', JSON.stringify(next)); }
     catch (e) { console.error(e); }
   }, []);
   const savePinnedShortcuts = useCallback(async (next) => {
     setPinnedShortcuts(next);
-    try { await storageAdapter.set('pera-log:pinnedShortcuts', JSON.stringify(next)); }
+    try { await storageAdapter.set('aed:pinnedShortcuts', JSON.stringify(next)); }
     catch (e) { console.error(e); }
   }, []);
   const toggleTheme = useCallback(async () => {
     setTheme(current => {
       const next = current === 'dark' ? 'light' : 'dark';
-      storageAdapter.set('pera-log:theme', JSON.stringify(next)).catch(e => console.error(e));
+      storageAdapter.set('aed:theme', JSON.stringify(next)).catch(e => console.error(e));
       return next;
     });
   }, []);
+
+  // ---- Cloud sync wiring (Google Sign-In) ----
+  // Applying a snapshot pulled from Firestore updates local state + storage
+  // without re-triggering a push back to the cloud (avoids echo loops).
+  const applyingRemoteRef = React.useRef(false);
+
+  const applyRemoteSnapshot = useCallback((data) => {
+    data = normalizeData(data);
+    applyingRemoteRef.current = true;
+    if (data.transactions) { setTransactions(data.transactions); storageAdapter.set('aed:transactions', JSON.stringify(data.transactions)); }
+    if (data.budgets) { setBudgets(data.budgets); storageAdapter.set('aed:budgets', JSON.stringify(data.budgets)); }
+    if (data.dailyBudgets) { setDailyBudgets(data.dailyBudgets); storageAdapter.set('aed:dailyBudgets', JSON.stringify(data.dailyBudgets)); }
+    if (data.goals) { setGoals(data.goals); storageAdapter.set('aed:goals', JSON.stringify(data.goals)); }
+    if (data.recurring) { setRecurring(data.recurring); storageAdapter.set('aed:recurring', JSON.stringify(data.recurring)); }
+    if (data.pinnedShortcuts) { setPinnedShortcuts(data.pinnedShortcuts); storageAdapter.set('aed:pinnedShortcuts', JSON.stringify(data.pinnedShortcuts)); }
+    setTimeout(() => { applyingRemoteRef.current = false; }, 0);
+  }, []);
+
+  // Watch Firebase's own auth state. This picks up an existing Google session
+  // automatically (e.g. after a page reload) without the person re-clicking
+  // sign-in every time.
+  useEffect(() => {
+    const unsubscribe = syncEngine.onAuthChange((user) => {
+      setAuthChecked(true);
+      if (user) {
+        setSyncUser({ uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL });
+      } else {
+        setSyncUser(null);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  // Subscribe to this account's synced document whenever signed in.
+  useEffect(() => {
+    if (!syncUser) return;
+    let cancelled = false;
+    setSyncStatus('syncing');
+    setSyncError(null);
+    syncEngine.subscribe(
+      (data) => { if (!cancelled) { applyRemoteSnapshot(data); setSyncStatus('synced'); } },
+      (err) => { if (!cancelled) { setSyncStatus('error'); setSyncError(err.message || 'Sync error'); } }
+    );
+    return () => { cancelled = true; syncEngine.stopSubscription(); };
+  }, [syncUser, applyRemoteSnapshot]);
+
+  // Debounced push: whenever local data changes (and it wasn't just applied
+  // FROM the cloud), push a fresh snapshot up, coalescing rapid edits.
+  const pushTimerRef = React.useRef(null);
+  const pushToCloud = useCallback(() => {
+    if (!syncUser || applyingRemoteRef.current) return;
+    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(async () => {
+      try {
+        setSyncStatus('syncing');
+        await syncEngine.pushSnapshot({
+          transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts,
+        });
+        setSyncStatus('synced');
+        setSyncError(null);
+      } catch (e) {
+        setSyncStatus('error');
+        setSyncError(e.message || 'Could not sync');
+      }
+    }, 1200);
+  }, [syncUser, transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts]);
+
+  useEffect(() => { pushToCloud(); }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, pushToCloud]);
+
+  // Signs in with Google, then either pulls existing cloud data for this
+  // account or pushes what's currently on this device as the starting point.
+  //
+  // One wrinkle: if this account has never synced before (no cloud doc yet)
+  // AND this device already has real data, we don't push silently. Pushing
+  // here just means "this device's copy is now the cloud copy" — harmless if
+  // this is genuinely the first device, but if another device signs in later
+  // expecting its own local data to survive, a same-shaped silent push there
+  // would blow this away instead of merging. So the fix is: only skip the
+  // prompt when there's nothing local worth protecting.
+  const finishSignIn = useCallback(async (user) => {
+    setSyncUser({ uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL });
+    setSyncStatus('synced');
+  }, []);
+
+  // Ensures this device has an unlocked (cached) data key for uid before any
+  // fetchSnapshot/pushSnapshot call, which both require one. Three cases:
+  // already cached (resolve immediately, no prompt — this is what makes
+  // sync "automatic" after the first time on a device); account has never
+  // set up encryption (show the "setup" modal, generate keys, show the
+  // recovery code once); account has encryption but this device hasn't
+  // unlocked it yet (show the "unlock" modal for passphrase or recovery
+  // code). Resolves { ok: true, recoveredLegacyData } once unlocked — the
+  // latter is non-null only when setup just recovered pre-encryption
+  // plaintext data from this account's doc, so the caller can push that
+  // instead of this device's own (possibly empty) local state — or
+  // { ok: false } if the person cancels.
+  const ensureEncryptionUnlocked = useCallback(async (uid) => {
+    const cached = await syncEngine.getUnlockedDataKey(uid);
+    if (cached) return { ok: true, recoveredLegacyData: null };
+
+    // Shared unlock-prompt flow, used both for the normal "this account
+    // already has encryption" path and for the case where a setup attempt
+    // loses a cross-device race (see onSetup below) and needs to fall back
+    // to unlocking with the passphrase that actually won.
+    const promptUnlock = () => new Promise((resolve) => {
+      setEncryptionPrompt({
+        mode: 'unlock', busy: false, error: null,
+        onUnlock: async (method, value) => {
+          setEncryptionPrompt(p => ({ ...p, busy: true, error: null }));
+          try {
+            if (method === 'passphrase') await syncEngine.unlockWithPassphrase(uid, value);
+            else await syncEngine.unlockWithRecoveryCode(uid, value);
+            setEncryptionPrompt(null);
+            resolve({ ok: true, recoveredLegacyData: null });
+          } catch (e) {
+            setEncryptionPrompt(p => ({ ...p, busy: false, error: e.message || 'Could not unlock.' }));
+          }
+        },
+        onCancel: () => { setEncryptionPrompt(null); resolve({ ok: false, recoveredLegacyData: null }); },
+      });
+    });
+
+    const hasSetup = await syncEngine.hasEncryptionSetup(uid);
+
+    if (!hasSetup) {
+      return await new Promise((resolve) => {
+        let recoveredLegacyData = null;
+        setEncryptionPrompt({
+          mode: 'setup', busy: false, error: null,
+          onSetup: async (passphrase) => {
+            setEncryptionPrompt(p => ({ ...p, busy: true, error: null }));
+            try {
+              const result = await syncEngine.setupEncryption(uid, passphrase);
+              if (result.alreadySetUp) {
+                // Lost the race: another device finished setup a moment
+                // before this one. Don't show a made-up recovery code for
+                // a setup that didn't actually happen — switch straight to
+                // the real unlock prompt instead, using the account's
+                // actual passphrase.
+                setEncryptionPrompt(p => ({
+                  ...p, busy: false,
+                  error: 'This account was just set up on another device. Enter that passphrase to continue.',
+                }));
+                const unlockResult = await promptUnlock();
+                resolve(unlockResult);
+                return null;
+              }
+              recoveredLegacyData = result.recoveredLegacyData;
+              setEncryptionPrompt(p => ({ ...p, busy: false }));
+              return result.recoveryCode;
+            } catch (e) {
+              setEncryptionPrompt(p => ({ ...p, busy: false, error: e.message || 'Could not set up encryption.' }));
+              throw e;
+            }
+          },
+          onDone: () => { setEncryptionPrompt(null); resolve({ ok: true, recoveredLegacyData }); },
+          onCancel: () => { setEncryptionPrompt(null); resolve({ ok: false, recoveredLegacyData: null }); },
+        });
+      });
+    }
+
+    return await promptUnlock();
+  }, []);
+
+
+  const signInAndSync = useCallback(async () => {
+    setSyncStatus('syncing');
+    setSyncError(null);
+    try {
+      const user = await syncEngine.signInWithGoogle();
+
+      const unlockResult = await ensureEncryptionUnlocked(user.uid);
+      if (!unlockResult.ok) {
+        await syncEngine.signOut();
+        setSyncStatus('idle');
+        return { ok: false, error: 'Sign-in cancelled.' };
+      }
+
+      // Setup just recovered pre-encryption plaintext data from this
+      // account's own doc (see setupEncryption's comment on why this takes
+      // priority over whatever's on this particular device): merge it into
+      // local state so nothing this device already had gets clobbered, push
+      // it as the new encrypted payload, and skip the local-data prompt
+      // below entirely — that prompt is about which *device* should win
+      // when the account is genuinely starting fresh, which isn't the case
+      // here.
+      if (unlockResult.recoveredLegacyData) {
+        const merged = {
+          transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts,
+          ...unlockResult.recoveredLegacyData,
+        };
+        applyRemoteSnapshot(merged);
+        await syncEngine.pushSnapshot(merged);
+        await finishSignIn(user);
+        return { ok: true };
+      }
+
+      const existing = await syncEngine.fetchSnapshot();
+      if (existing) {
+        applyRemoteSnapshot(existing);
+        await finishSignIn(user);
+        return { ok: true };
+      }
+
+      const hasLocalData = transactions.length > 0 || goals.length > 0 || recurring.length > 0
+        || Object.keys(budgets).length > 0 || Object.keys(dailyBudgets || {}).length > 0;
+
+      if (!hasLocalData) {
+        await syncEngine.pushSnapshot({ transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts });
+        await finishSignIn(user);
+        return { ok: true };
+      }
+
+      // First sync for this account, but this device isn't empty — confirm
+      // before treating this device's data as the starting point.
+      return await new Promise((resolve) => {
+        setConfirmDelete({
+          confirmTitle: 'Use this device\'s data as the starting point?',
+          confirmBody: 'This Google account has no synced data yet, and this device already has its own log, budgets, goals, or recurring expenses. Continuing will upload this device\'s data to the cloud. If you meant to pull data from elsewhere instead, sign out and check you\'re using the right account first.',
+          confirmLabel: 'Use this device\'s data',
+          onConfirm: async () => {
+            try {
+              await syncEngine.pushSnapshot({ transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts });
+              await finishSignIn(user);
+              resolve({ ok: true });
+            } catch (e) {
+              setSyncStatus('error');
+              const message = e.message || 'Could not sync';
+              setSyncError(message);
+              resolve({ ok: false, error: message });
+            }
+          },
+          onCancel: async () => {
+            await syncEngine.signOut();
+            setSyncStatus('idle');
+            resolve({ ok: false, error: 'Sign-in cancelled.' });
+          },
+        });
+      });
+    } catch (e) {
+      setSyncStatus('error');
+      const message = e.code === 'auth/popup-closed-by-user' ? 'Sign-in was closed before finishing.' : (e.message || 'Could not sign in');
+      setSyncError(message);
+      return { ok: false, error: message };
+    }
+  }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, applyRemoteSnapshot, finishSignIn, ensureEncryptionUnlocked]);
+
+  const signOutOfSync = useCallback(async () => {
+    await syncEngine.signOut();
+    setSyncUser(null);
+    setSyncStatus('idle');
+    setSyncError(null);
+  }, []);
+
+  // Covers a gap the normal sign-in flow doesn't: Firebase restores an
+  // existing Google session automatically on page load (via onAuthChange),
+  // which sets syncUser and starts the subscribe effect — without ever
+  // going through signInAndSync/ensureEncryptionUnlocked. If this device's
+  // cached data key isn't there (cleared storage, private window, a
+  // browser that doesn't persist IndexedDB the way it persists the auth
+  // session), subscribe surfaces a "Locked" syncError with no way to act
+  // on it otherwise. This lets the Data tab offer an unlock retry directly
+  // from that state, without forcing a sign-out/sign-in round trip.
+  // Forces a fresh unlock prompt on this device, clearing any cached data
+  // key first. This matters specifically when sync is failing because this
+  // device's cached key no longer matches what's actually in Firestore —
+  // e.g. after the cross-device setup race setupEncryption's transaction
+  // now prevents, but that a device could already be stuck in from before
+  // this fix. Without clearing the cache first, ensureEncryptionUnlocked
+  // would just find the (wrong) cached key and return immediately, never
+  // giving the person a chance to re-enter the passphrase that actually
+  // matches the current data.
+  const retryUnlock = useCallback(async () => {
+    if (!syncUser) return;
+    setSyncStatus('syncing');
+    setSyncError(null);
+    await keyVault.clearCachedDataKey(syncUser.uid);
+    const unlockResult = await ensureEncryptionUnlocked(syncUser.uid);
+    if (!unlockResult.ok) {
+      setSyncStatus('error');
+      setSyncError('Locked — enter your passphrase or recovery code first.');
+      return;
+    }
+    // ensureEncryptionUnlocked only ever recovers legacy plaintext data
+    // during first-ever setup, which can't be the case here (this account
+    // already has a synced, encrypted payload or subscribe couldn't have
+    // reported "Locked" in the first place) — so just let the existing
+    // subscribe effect's next tick pick up the now-unlocked key. Nudging
+    // syncUser to a new object re-triggers that effect.
+    setSyncUser(u => ({ ...u }));
+  }, [syncUser, ensureEncryptionUnlocked]);
 
   const addTransaction = (tx) => {
     const next = [{ ...tx, id: uid() }, ...transactions];
@@ -1679,7 +2857,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header balance={balance} monthSpent={monthSpent} monthIncome={monthIncome} theme={theme} toggleTheme={toggleTheme} />
+      <Header balance={balance} monthSpent={monthSpent} monthIncome={monthIncome} theme={theme} toggleTheme={toggleTheme} onOpenTutorial={() => setShowTutorial(true)} />
       <nav className="tabs">
         {[
           ['dashboard', 'Dashboard'],
@@ -1754,12 +2932,20 @@ function App() {
           saveDailyBudgets={saveDailyBudgets}
           goals={goals}
           recurring={recurring}
+          pinnedShortcuts={pinnedShortcuts}
+          savePinnedShortcuts={savePinnedShortcuts}
           saveTransactions={saveTransactions}
           saveBudgets={saveBudgets}
           saveGoals={saveGoals}
           saveRecurring={saveRecurring}
           showToast={showToast}
           requestDelete={setConfirmDelete}
+          syncUser={syncUser}
+          syncStatus={syncStatus}
+          syncError={syncError}
+          signInAndSync={signInAndSync}
+          signOutOfSync={signOutOfSync}
+          retryUnlock={retryUnlock}
         />
       )}
 
@@ -1771,21 +2957,40 @@ function App() {
           body={confirmDelete.confirmBody || "This can't be undone."}
           confirmLabel={confirmDelete.confirmLabel || "Delete"}
           onConfirm={() => { confirmDelete.onConfirm(); setConfirmDelete(null); }}
-          onCancel={() => setConfirmDelete(null)}
+          onCancel={() => { if (confirmDelete.onCancel) confirmDelete.onCancel(); setConfirmDelete(null); }}
         />
+      )}
+
+      {encryptionPrompt && (
+        <EncryptionModal
+          mode={encryptionPrompt.mode}
+          busy={encryptionPrompt.busy}
+          error={encryptionPrompt.error}
+          onSetup={encryptionPrompt.onSetup}
+          onUnlock={encryptionPrompt.onUnlock}
+          onDone={encryptionPrompt.onDone}
+          onCancel={encryptionPrompt.onCancel}
+        />
+      )}
+
+      {showTutorial && (
+        <TutorialPanel onClose={() => setShowTutorial(false)} />
       )}
     </div>
   );
 }
 
-function Header({ balance, monthSpent, monthIncome, theme, toggleTheme }) {
+function Header({ balance, monthSpent, monthIncome, theme, toggleTheme, onOpenTutorial }) {
   const today = new Date().toLocaleDateString('en-AE', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   return (
     <>
       <div className="header">
-        <div className="brand"><span className="peso-mark">₱</span>era Log - AED</div>
+        <div className="brand"><span className="peso-mark">د.إ</span>Dirham Log</div>
         <div className="header-right">
           <div className="header-date">{today}</div>
+          <button className="theme-toggle" onClick={onOpenTutorial} aria-label="How to use Dirham Log">
+            ?
+          </button>
           <button className="theme-toggle" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
             {theme === 'dark' ? '☀' : '☾'}
           </button>
@@ -1812,7 +3017,7 @@ function Header({ balance, monthSpent, monthIncome, theme, toggleTheme }) {
 
 function getWeekRange(offsetWeeks = 0) {
   const now = new Date();
-  const day = now.getDay(); // 0 = Sunday
+  const day = (now.getDay() + 6) % 7; // 0 = Monday: the UAE work week starts Monday
   const start = new Date(now);
   start.setDate(now.getDate() - day + offsetWeeks * 7);
   start.setHours(0, 0, 0, 0);
@@ -2067,7 +3272,7 @@ function HomeTab({ transactions, addTransaction, updateTransaction, deleteTransa
     setShowForm(false);
   };
 
-  const catInfo = (id) => CATEGORIES.find(c => c.id === id);
+  const catInfo = (id) => CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
 
   const filtered = useMemo(() => {
     let list = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || 0);
@@ -2193,7 +3398,7 @@ function HomeTab({ transactions, addTransaction, updateTransaction, deleteTransa
     const today = todayStr();
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const yStr = yesterday.toISOString().slice(0, 10);
+    const yStr = toLocalDateStr(yesterday);
     if (dateStr === today) return 'Today';
     if (dateStr === yStr) return 'Yesterday';
     return d.toLocaleDateString('en-AE', { weekday: 'long', month: 'short', day: 'numeric' });
@@ -2247,7 +3452,7 @@ function HomeTab({ transactions, addTransaction, updateTransaction, deleteTransa
         <div className="form-panel reconcile-panel">
           <div className="section-title" style={{fontSize: 16}}>How much do you actually have?</div>
           <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -6, marginBottom: 14, lineHeight: 1.6}}>
-            Count your cash and GCash on hand right now. We'll compare it to what the log says you should have, so you can see exactly where any gap comes from instead of guessing.
+            Count your cash, wallet, and bank balance right now. We'll compare it to what the log says you should have, so you can see exactly where any gap comes from instead of guessing.
           </p>
           <div className="form-field" style={{marginBottom: 14}}>
             <label htmlFor="counted-amount">What you counted</label>
@@ -2319,8 +3524,8 @@ function HomeTab({ transactions, addTransaction, updateTransaction, deleteTransa
               </div>
             )}
             <div className="form-field full">
-              <label htmlFor="note">{formType === 'income' ? 'Note (e.g. from Mama)' : 'What was it for?'}</label>
-              <input id="note" type="text" placeholder={formType === 'income' ? 'Weekly income' : 'e.g. Jollibee with blockmates'} value={note} onChange={e => setNote(e.target.value)} />
+              <label htmlFor="note">{formType === 'income' ? 'Note (e.g. salary, side income)' : 'What was it for?'}</label>
+              <input id="note" type="text" placeholder={formType === 'income' ? 'Monthly salary' : 'e.g. Carrefour weekly shop'} value={note} onChange={e => setNote(e.target.value)} />
             </div>
             {formType === 'expense' && (
               <div className="form-field full">
@@ -2489,7 +3694,7 @@ function BudgetsTab({ budgets, saveBudgets, dailyBudgets, saveDailyBudgets, mont
     const today = todayStr();
     const cutoff = new Date(today + 'T00:00:00');
     cutoff.setDate(cutoff.getDate() - DAILY_HISTORY_WINDOW_DAYS);
-    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const cutoffStr = toLocalDateStr(cutoff);
 
     // date -> categoryId -> spent
     const spentByDateAndCat = {};
@@ -2550,8 +3755,8 @@ function BudgetsTab({ budgets, saveBudgets, dailyBudgets, saveDailyBudgets, mont
 
       <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: 0, marginBottom: 18}}>
         {isDaily
-          ? 'A fresh spending allowance for each day. Every morning this resets to AED0 spent — yesterday\u2019s overspend or leftover does not carry over. Daily limits sit alongside your monthly budgets; both track the same expenses.'
-          : 'Set a peso limit per category for the whole month. The bar fills as you spend, and turns red once you go over.'}
+          ? 'A fresh spending allowance for each day. Every morning this resets to AED 0 spent — yesterday\u2019s overspend or leftover does not carry over. Daily limits sit alongside your monthly budgets; both track the same expenses.'
+          : 'Set a dirham limit per category for the whole month. The bar fills as you spend, and turns red once you go over.'}
       </p>
 
       {isDaily && (
@@ -2626,7 +3831,7 @@ function BudgetsTab({ budgets, saveBudgets, dailyBudgets, saveDailyBudgets, mont
       {isDaily && totalBudget === 0 && (
         <p style={{fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 14, lineHeight: 1.6}}>
           Tip: you do not have to set a daily limit for every category. Many people set one only for the things
-          that creep \u2014 food, going out, load \u2014 and leave the rest to the monthly budget.
+          that creep — eating out, going out, transport — and leave the rest to the monthly budget.
         </p>
       )}
 
@@ -2634,7 +3839,7 @@ function BudgetsTab({ budgets, saveBudgets, dailyBudgets, saveDailyBudgets, mont
         <>
           <div className="section-title" style={{fontSize: 16, marginTop: 26}}>Daily history</div>
           <p style={{fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 0, marginBottom: 14, lineHeight: 1.6}}>
-            How the last {DAILY_HISTORY_WINDOW_DAYS} days landed against today's daily limits. Read-only \u2014 it does not affect any totals above.
+            How the last {DAILY_HISTORY_WINDOW_DAYS} days landed against today's daily limits. Read-only — it does not affect any totals above.
           </p>
           {dailyHistory.length === 0 ? (
             <div className="empty-state">No past days with spending in a limited category yet.</div>
@@ -2700,7 +3905,7 @@ function GoalsTab({ goals, saveGoals, showToast, requestDelete }) {
     const next = goals.map(g => g.id === goalId ? { ...g, saved: g.saved + amt } : g);
     saveGoals(next);
     setContributions(c => ({ ...c, [goalId]: '' }));
-    showToast('Added to your ipon');
+    showToast('Added to your savings');
   };
 
   const deleteGoal = (goalId, goalName) => {
@@ -2722,7 +3927,7 @@ function GoalsTab({ goals, saveGoals, showToast, requestDelete }) {
           <div className="form-grid">
             <div className="form-field full">
               <label htmlFor="goal-name">Goal name</label>
-              <input id="goal-name" type="text" placeholder="e.g. New laptop, Baguio trip, emergency fund" value={name} onChange={e => setName(e.target.value)} required autoFocus />
+              <input id="goal-name" type="text" placeholder="e.g. Emergency fund, flight home, Hatta weekend" value={name} onChange={e => setName(e.target.value)} required autoFocus />
             </div>
             <div className="form-field">
               <label htmlFor="goal-target">Target amount</label>
@@ -2742,7 +3947,7 @@ function GoalsTab({ goals, saveGoals, showToast, requestDelete }) {
       {goals.length === 0 && !showForm && (
         <div className="empty-state">
           <span className="serif">No goals yet</span>
-          Start one for that laptop, trip, or emergency fund.
+          Start one for a flight home, an emergency fund, or a trip.
         </div>
       )}
 
@@ -2785,7 +3990,7 @@ function GoalsTab({ goals, saveGoals, showToast, requestDelete }) {
   );
 }
 
-const FREQ_DAYS = { weekly: 7, biweekly: 14, monthly: 30 };
+const FREQ_DAYS = { weekly: 7, biweekly: 14, monthly: 30, quarterly: 91, yearly: 365 };
 
 function getRecurringDueInfo(item) {
   if (!item.lastPaid) return { text: 'Unpaid', soon: true, overdue: true };
@@ -2795,7 +4000,7 @@ function getRecurringDueInfo(item) {
   next.setDate(next.getDate() + days);
   const diffDays = Math.ceil((next - new Date()) / (1000 * 60 * 60 * 24));
   if (diffDays <= 0) return { text: 'Due now', soon: true, overdue: true };
-  if (diffDays <= 3) return { text: `Due in ${diffDays}d`, soon: true, overdue: false };
+  if (diffDays <= (days >= 91 ? 14 : 3)) return { text: `Due in ${diffDays}d`, soon: true, overdue: false };
   return { text: `Due in ${diffDays}d`, soon: false, overdue: false };
 }
 
@@ -2803,7 +4008,7 @@ function RecurringTab({ recurring, saveRecurring, addTransaction, showToast, req
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('dorm');
+  const [category, setCategory] = useState('housing');
   const [freq, setFreq] = useState('monthly');
 
   const addRecurring = (e) => {
@@ -2814,7 +4019,7 @@ function RecurringTab({ recurring, saveRecurring, addTransaction, showToast, req
       id: uid(), name: name.trim(), amount: amt, category, freq,
       lastPaid: null,
     }]);
-    setName(''); setAmount(''); setFreq('monthly'); setCategory('dorm'); setShowForm(false);
+    setName(''); setAmount(''); setFreq('monthly'); setCategory('housing'); setShowForm(false);
     showToast('Recurring expense added');
   };
 
@@ -2835,7 +4040,7 @@ function RecurringTab({ recurring, saveRecurring, addTransaction, showToast, req
 
   const catInfo = (id) => CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
   const totalMonthly = recurring.reduce((s, r) => {
-    const mult = r.freq === 'weekly' ? 4.33 : r.freq === 'biweekly' ? 2.17 : 1;
+    const mult = r.freq === 'weekly' ? 4.33 : r.freq === 'biweekly' ? 2.17 : r.freq === 'quarterly' ? 1 / 3 : r.freq === 'yearly' ? 1 / 12 : 1;
     return s + r.amount * mult;
   }, 0);
 
@@ -2846,15 +4051,32 @@ function RecurringTab({ recurring, saveRecurring, addTransaction, showToast, req
         <button className="btn" onClick={() => setShowForm(s => !s)}>{showForm ? 'Close' : '+ Add recurring'}</button>
       </div>
       <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -10, marginBottom: 18}}>
-        Rent, load reloads, dorm bills, subscriptions — things you pay on a schedule.
+        Rent, DEWA, phone plans, insurance, visa renewals — things you pay on a schedule.
       </p>
+
+      {!showForm && recurring.length === 0 && (
+        <div className="quick-add-section">
+          <div className="quick-add-header"><span className="quick-add-title">Common UAE bills</span></div>
+          <div className="quick-add-row">
+            {RECURRING_PRESETS.map(p => (
+              <button key={p.name} className="quick-add-chip" onClick={() => { setName(p.name); setCategory(p.category); setFreq(p.freq); setShowForm(true); }}>
+                <span className="quick-add-chip-icon">{CATEGORIES.find(c => c.id === p.category).icon}</span>
+                <span className="quick-add-chip-text">
+                  <span className="quick-add-chip-note">{p.name}</span>
+                  <span className="quick-add-chip-amount">{p.freq}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <form className="form-panel" onSubmit={addRecurring}>
           <div className="form-grid">
             <div className="form-field full">
               <label htmlFor="rec-name">Name</label>
-              <input id="rec-name" type="text" placeholder="e.g. Boarding house rent" value={name} onChange={e => setName(e.target.value)} required autoFocus />
+              <input id="rec-name" type="text" placeholder="e.g. Rent" value={name} onChange={e => setName(e.target.value)} required autoFocus />
             </div>
             <div className="form-field">
               <label htmlFor="rec-amount">Amount</label>
@@ -2869,6 +4091,8 @@ function RecurringTab({ recurring, saveRecurring, addTransaction, showToast, req
                 <option value="weekly">Weekly</option>
                 <option value="biweekly">Every 2 weeks</option>
                 <option value="monthly">Monthly</option>
+                <option value="quarterly">Every 3 months (cheque)</option>
+                <option value="yearly">Yearly (renewal)</option>
               </select>
             </div>
             <div className="form-field full">
@@ -2895,7 +4119,7 @@ function RecurringTab({ recurring, saveRecurring, addTransaction, showToast, req
       {recurring.length === 0 && !showForm && (
         <div className="empty-state">
           <span className="serif">Nothing set up</span>
-          Add rent, load, or subscriptions to track them automatically.
+          Add rent, utilities, or renewals so nothing slips past its due date.
         </div>
       )}
 
@@ -2908,7 +4132,7 @@ function RecurringTab({ recurring, saveRecurring, addTransaction, showToast, req
               <div>
                 <div className="recurring-name"><span className="cat-badge">{cat.icon}</span><span>{item.name}</span></div>
               </div>
-              <div className="recurring-freq">{item.freq === 'biweekly' ? 'every 2 wks' : item.freq}</div>
+              <div className="recurring-freq">{item.freq === 'biweekly' ? 'every 2 wks' : item.freq === 'quarterly' ? 'every 3 mo' : item.freq}</div>
               <div className="recurring-amount">{pesoShort(item.amount)}</div>
               <div className={'recurring-due' + (due.soon ? ' due-soon' : '')}>{due.text}</div>
               <button className="btn small" onClick={() => markPaid(item)} title="Mark as paid, log expense">Pay</button>
@@ -3035,15 +4259,16 @@ function StatsTab({ transactions }) {
   );
 }
 
-function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals, recurring, saveTransactions, saveBudgets, saveGoals, saveRecurring, showToast, requestDelete }) {
+function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals, recurring, pinnedShortcuts, savePinnedShortcuts, saveTransactions, saveBudgets, saveGoals, saveRecurring, showToast, requestDelete, syncUser, syncStatus, syncError, signInAndSync, signOutOfSync, retryUnlock }) {
   const fileInputRef = React.useRef(null);
   const [importError, setImportError] = useState(null);
+  const [signingIn, setSigningIn] = useState(false);
 
   const buildExportPayload = () => ({
-    app: 'pera-log',
+    app: 'dirham-log',
     exportedAt: new Date().toISOString(),
-    version: 1,
-    data: { transactions, budgets, goals, recurring },
+    version: 2,
+    data: { transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts },
   });
 
   const handleExport = () => {
@@ -3054,7 +4279,7 @@ function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals,
     const a = document.createElement('a');
     const stamp = todayStr();
     a.href = url;
-    a.download = `pera-log-backup-${stamp}.json`;
+    a.download = `dirham-log-backup-${stamp}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -3068,22 +4293,26 @@ function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals,
   };
 
   const validatePayload = (parsed) => {
-    if (!parsed || typeof parsed !== 'object') return 'That file doesn\'t look like a Pera Log backup.';
+    if (!parsed || typeof parsed !== 'object') return 'That file doesn\'t look like a Dirham Log backup.';
     if (!parsed.data || typeof parsed.data !== 'object') return 'That file is missing its data section.';
-    const { transactions: t, budgets: b, goals: g, recurring: r } = parsed.data;
+    const { transactions: t, budgets: b, dailyBudgets: db, goals: g, recurring: r, pinnedShortcuts: p } = parsed.data;
     if (!Array.isArray(t)) return 'Transactions data is missing or malformed.';
     if (b !== undefined && typeof b !== 'object') return 'Budgets data is malformed.';
+    if (db !== undefined && typeof db !== 'object') return 'Daily budgets data is malformed.';
     if (g !== undefined && !Array.isArray(g)) return 'Goals data is malformed.';
     if (r !== undefined && !Array.isArray(r)) return 'Recurring data is malformed.';
+    if (p !== undefined && !Array.isArray(p)) return 'Pinned shortcuts data is malformed.';
     return null;
   };
 
   const applyImport = (parsed) => {
-    const { transactions: t, budgets: b, goals: g, recurring: r } = parsed.data;
-    saveTransactions(t || []);
-    saveBudgets(b || {});
+    const { transactions: t, budgets: b, dailyBudgets: db, goals: g, recurring: r, pinnedShortcuts: p } = parsed.data;
+    saveTransactions(fixTx(t || []));
+    saveBudgets(fixKeys(b || {}));
+    saveDailyBudgets(fixKeys(db || {}));
     saveGoals(g || []);
-    saveRecurring(r || []);
+    saveRecurring(fixTx(r || []));
+    if (savePinnedShortcuts) savePinnedShortcuts(p || []);
     showToast('Backup restored');
   };
 
@@ -3097,7 +4326,7 @@ function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals,
       try {
         parsed = JSON.parse(reader.result);
       } catch (err) {
-        setImportError('This file isn\'t valid JSON — make sure you picked a Pera Log backup file.');
+        setImportError('This file isn\'t valid JSON — make sure you picked a Dirham Log backup file.');
         return;
       }
       const validationError = validatePayload(parsed);
@@ -3127,12 +4356,103 @@ function DataTab({ transactions, budgets, dailyBudgets, saveDailyBudgets, goals,
   const recurringCount = recurring.length;
   const budgetCount = Object.keys(budgets).length + Object.keys(dailyBudgets || {}).length;
 
+  const resetLinkForm = () => {
+    setLinkMode(null);
+    setCodeInput('');
+    setCodeConfirmInput('');
+    setShowCode(false);
+    setLinkFormError(null);
+  };
+
+  const handleSignIn = async () => {
+    setSigningIn(true);
+    const result = await signInAndSync();
+    setSigningIn(false);
+    if (result.ok) {
+      showToast('Signed in — synced');
+    }
+    // On failure, syncError already holds a message shown in the panel below.
+  };
+
+  const handleSignOut = () => {
+    requestDelete({
+      confirmTitle: 'Sign out of sync?',
+      confirmBody: 'This device will keep its current data, but will stop sending or receiving updates until you sign in again with the same Google account.',
+      confirmLabel: 'Sign out',
+      onConfirm: () => { signOutOfSync(); showToast('Signed out of sync'); },
+    });
+  };
+
   return (
     <div>
       <div className="section-title">Backup & transfer</div>
       <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -8, marginBottom: 18, lineHeight: 1.6}}>
-        Your data is saved only on this device and browser. If you use Pera Log on your phone and your laptop, they don't automatically share data — use export and import to move a copy between them.
+        Your data is saved only on this device and browser. Sign in below for automatic sync, or use export and import to move a one-time copy between them.
       </p>
+
+      <div className="form-panel">
+        <div className="section-title" style={{fontSize: 16}}>Sync between devices</div>
+        {!syncEngine.isAvailable() && (
+          <p style={{fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.6}}>
+            Sync isn't available right now — check your internet connection and reload the page.
+          </p>
+        )}
+        {syncEngine.isAvailable() && !syncUser && (
+          <>
+            <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: -6, marginBottom: 14, lineHeight: 1.6}}>
+              Sign in with Google to keep your phone and laptop in sync automatically. Sign in with the
+              same account on both devices — your Google account is the only thing that links them, no
+              separate password or code to remember.
+            </p>
+            {syncStatus === 'error' && syncError && (
+              <p style={{fontSize: 12, color: 'var(--clay)', marginBottom: 12}}>{syncError}</p>
+            )}
+            <button className="btn google-signin-btn" onClick={handleSignIn} disabled={signingIn}>
+              <svg width="16" height="16" viewBox="0 0 48 48" style={{flexShrink: 0}}>
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.5-.4-3.5z"/>
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.6 6 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.7 35 27 36 24 36c-5.2 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.6 5.6C41.9 35.9 44 30.4 44 24c0-1.3-.1-2.5-.4-3.5z"/>
+              </svg>
+              {signingIn ? 'Signing in…' : 'Sign in with Google'}
+            </button>
+          </>
+        )}
+
+        {syncUser && (
+          <div>
+            <div className="sync-account-row">
+              {syncUser.photoURL && <img src={syncUser.photoURL} alt="" className="sync-avatar" referrerPolicy="no-referrer" />}
+              <div>
+                <div className="sync-account-name">{syncUser.displayName || syncUser.email}</div>
+                {syncUser.email && syncUser.displayName && <div className="sync-account-email">{syncUser.email}</div>}
+              </div>
+            </div>
+            <div className="sync-status-row">
+              <span className={'sync-status-dot ' + syncStatus}></span>
+              <span className="sync-status-text">
+                {syncStatus === 'syncing' && 'Syncing…'}
+                {syncStatus === 'synced' && 'Synced'}
+                {syncStatus === 'error' && 'Sync error'}
+                {syncStatus === 'idle' && 'Connected'}
+              </span>
+            </div>
+            {syncStatus === 'error' && syncError && (
+              <div style={{marginTop: 4}}>
+                <p style={{fontSize: 12, color: 'var(--clay)', marginBottom: 6}}>{syncError}</p>
+                <button className="btn secondary" style={{fontSize: 12, padding: '6px 10px'}} onClick={retryUnlock}>
+                  Unlock this device
+                </button>
+              </div>
+            )}
+            <p style={{fontSize: 13, color: 'var(--ink-soft)', marginTop: 10, marginBottom: 14, lineHeight: 1.6}}>
+              Signed in. Changes here appear on your other devices signed into this same Google account
+              automatically, and theirs will appear here.
+            </p>
+            <button className="btn secondary" onClick={handleSignOut}>Sign out of sync</button>
+          </div>
+        )}
+      </div>
 
       <div className="stat-grid" style={{marginBottom: 24}}>
         <div className="stat-box">
@@ -3195,7 +4515,7 @@ function ErrorBoundary({ children }) {
   if (error) {
     return (
       <div style={{padding: 40, fontFamily: 'Inter, sans-serif', maxWidth: 600, margin: '0 auto'}}>
-        <h2 style={{fontFamily: "Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, serif"}}>Something broke while loading Pera Log</h2>
+        <h2 style={{fontFamily: "Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, serif"}}>Something broke while loading Dirham Log</h2>
         <p style={{color: '#3E4E52', fontSize: 14, lineHeight: 1.6}}>
           {String(error && error.message ? error.message : error)}
         </p>
@@ -3208,6 +4528,8 @@ function ErrorBoundary({ children }) {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<ErrorBoundary><App /></ErrorBoundary>);
+
+
 </script>
 </body>
 </html>
