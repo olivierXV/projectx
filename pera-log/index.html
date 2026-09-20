@@ -2669,6 +2669,43 @@ function App() {
         return { ok: true };
       }
 
+      // fetchSnapshot came back with nothing — but that's ambiguous. It
+      // could mean this account genuinely has no synced data yet, or it
+      // could mean there IS data (this device just took the unlock path
+      // above, which only happens when hasEncryptionSetup already found
+      // encSalt on the account) and this particular read raced with
+      // another device's write, or hit a stale/offline-cache response.
+      // Getting this wrong is exactly the bug where one device's real data
+      // gets silently overwritten by another device's local state — so
+      // when we know encryption was already set up, treat a null fetch as
+      // "unconfirmed," retry once after a short delay, and only fall
+      // through to the brand-new-account flow if it's still empty after
+      // that. (We can't have reached here via the setupEncryption/
+      // recoveredLegacyData path above — that branch always returns before
+      // this point — so "encryption already set up" and "took the unlock
+      // path" are the same fact here.)
+      const hadPriorSetup = await syncEngine.hasEncryptionSetup(user.uid);
+      if (hadPriorSetup) {
+        await new Promise(r => setTimeout(r, 1200));
+        const retried = await syncEngine.fetchSnapshot();
+        if (retried) {
+          applyRemoteSnapshot(retried);
+          await finishSignIn(user);
+          return { ok: true };
+        }
+        // Still nothing after the retry: this account has encryption set
+        // up but somehow no payload at all (e.g. setup ran but the
+        // pushSnapshot step that should follow it never completed on
+        // whichever device did it). Don't guess — surface this clearly
+        // rather than silently deciding this device's data should become
+        // the account's whole history.
+        setSyncStatus('error');
+        const message = 'Could not confirm this account\'s synced data yet. Please try signing in again in a moment rather than continuing, to avoid overwriting anything.';
+        setSyncError(message);
+        await syncEngine.signOut();
+        return { ok: false, error: message };
+      }
+
       const hasLocalData = transactions.length > 0 || goals.length > 0 || recurring.length > 0
         || Object.keys(budgets).length > 0 || Object.keys(dailyBudgets || {}).length > 0;
 
@@ -4456,7 +4493,8 @@ function ErrorBoundary({ children }) {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<ErrorBoundary><App /></ErrorBoundary>);
 
-  
+
+
 </script>
 </body>
 </html>
