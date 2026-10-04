@@ -1846,6 +1846,151 @@ const firebaseConfig = {
   appId: "1:225519178777:web:45ad93d84a6eedff7a4688",
 };
 
+// ---- Conflict-free merge for synced data ----
+// Sync used to be "whole snapshot, last writer wins": whichever device pushed
+// last replaced everything. That is how a device holding older data (or a
+// push racing with the echo of your own previous push) could wipe entries
+// that were just added or bring back ones just deleted.
+// Now every snapshot carries _meta: a timestamp per edited item ("stamps"),
+// a record of deleted items ("tombstones") and a timestamp per small setting
+// ("scalars"). Merging two snapshots keeps the union of items, the newer edit
+// of each item, and honours deletes — so nothing is lost by syncing.
+const syncMerge = (() => {
+  const COLLECTIONS = ['transactions', 'goals', 'recurring'];
+  const SCALARS = ['budgets', 'dailyBudgets', 'pinnedShortcuts'];
+  const FIELDS = ['transactions', 'budgets', 'dailyBudgets', 'goals', 'recurring', 'pinnedShortcuts'];
+  const TOMBSTONE_TTL = 120 * 24 * 60 * 60 * 1000;
+
+  // Key-sorted JSON so two equal snapshots always compare equal as strings.
+  function stable(v) {
+    if (v === null || typeof v !== 'object') return JSON.stringify(v);
+    if (Array.isArray(v)) return '[' + v.map(stable).join(',') + ']';
+    return '{' + Object.keys(v).sort().filter(k => v[k] !== undefined)
+      .map(k => JSON.stringify(k) + ':' + stable(v[k])).join(',') + '}';
+  }
+  const keyOf = (it) => (it && it.id != null) ? String(it.id) : '~' + stable(it);
+  const idTime = (id) => { const n = parseInt(String(id).slice(0, 8), 36); return isNaN(n) ? 0 : n; };
+
+  function emptyMeta() {
+    const m = { v: 3, stamps: {}, tombstones: {}, scalars: {} };
+    COLLECTIONS.forEach(c => { m.stamps[c] = {}; m.tombstones[c] = {}; });
+    return m;
+  }
+  function normMeta(m) {
+    const out = emptyMeta();
+    if (!m || typeof m !== 'object') return out;
+    COLLECTIONS.forEach(c => {
+      Object.assign(out.stamps[c], m.stamps && m.stamps[c]);
+      Object.assign(out.tombstones[c], m.tombstones && m.tombstones[c]);
+    });
+    Object.assign(out.scalars, m.scalars);
+    return out;
+  }
+
+  // Called on every local change: stamps new/edited items, tombstones removed ones.
+  function stampCollection(meta, c, prev, next, now) {
+    const stamps = meta.stamps[c] || (meta.stamps[c] = {});
+    const tombs = meta.tombstones[c] || (meta.tombstones[c] = {});
+    const prevMap = new Map();
+    (Array.isArray(prev) ? prev : []).forEach(it => { if (it) prevMap.set(keyOf(it), it); });
+    const nextKeys = new Set();
+    (Array.isArray(next) ? next : []).forEach(it => {
+      if (!it) return;
+      const k = keyOf(it);
+      nextKeys.add(k);
+      const old = prevMap.get(k);
+      if (!old || (old !== it && stable(old) !== stable(it))) { stamps[k] = now; delete tombs[k]; }
+    });
+    prevMap.forEach((_, k) => { if (!nextKeys.has(k)) { tombs[k] = now; delete stamps[k]; } });
+  }
+
+  function mergeScalar(lv, lts, rv, rts) {
+    if (lv == null && rv == null) return { val: lv !== undefined ? lv : rv, ts: Math.max(lts, rts) };
+    if (lv == null) return { val: rv, ts: rts };
+    if (rv == null) return { val: lv, ts: lts };
+    if (lts > rts) return { val: lv, ts: lts };
+    if (rts > lts) return { val: rv, ts: rts };
+    if (stable(lv) === stable(rv)) return { val: lv, ts: lts };
+    // Same timestamp (e.g. both from before stamping existed): combine, deterministically.
+    if (Array.isArray(lv) && Array.isArray(rv)) {
+      const seen = new Set(); const out = [];
+      lv.concat(rv).forEach(x => { const k = stable(x); if (!seen.has(k)) { seen.add(k); out.push(x); } });
+      out.sort((a, b) => (stable(a) < stable(b) ? -1 : 1));
+      return { val: out, ts: lts };
+    }
+    if (typeof lv === 'object' && typeof rv === 'object') {
+      const out = {};
+      Array.from(new Set(Object.keys(lv).concat(Object.keys(rv)))).sort().forEach(k => {
+        if (!(k in lv)) out[k] = rv[k];
+        else if (!(k in rv)) out[k] = lv[k];
+        else out[k] = stable(lv[k]) >= stable(rv[k]) ? lv[k] : rv[k];
+      });
+      return { val: out, ts: lts };
+    }
+    return { val: stable(lv) >= stable(rv) ? lv : rv, ts: lts };
+  }
+
+  function mergeSnapshots(local, remote) {
+    local = local || {}; remote = remote || {};
+    const lm = normMeta(local._meta), rm = normMeta(remote._meta);
+    const out = { _meta: emptyMeta() };
+    const cutoff = Date.now() - TOMBSTONE_TTL;
+
+    COLLECTIONS.forEach(c => {
+      const best = new Map(); // key -> { item, ts }
+      const consider = (list, meta) => {
+        (Array.isArray(list) ? list : []).forEach(it => {
+          if (!it) return;
+          const k = keyOf(it);
+          const ts = meta.stamps[c][k] || 0;
+          const cur = best.get(k);
+          if (!cur || ts > cur.ts || (ts === cur.ts && stable(it) > stable(cur.item))) best.set(k, { item: it, ts });
+        });
+      };
+      consider(local[c], lm); consider(remote[c], rm);
+
+      const tomb = {};
+      [lm, rm].forEach(m => Object.keys(m.tombstones[c]).forEach(k => {
+        if (m.tombstones[c][k] > (tomb[k] || 0)) tomb[k] = m.tombstones[c][k];
+      }));
+
+      const list = [];
+      best.forEach(({ item, ts }, k) => {
+        if (tomb[k] && tomb[k] >= ts) return; // deleted at/after its last edit
+        list.push(item);
+        if (ts) out._meta.stamps[c][k] = ts;
+        delete tomb[k]; // outdated tombstone, item was re-edited after it
+      });
+      Object.keys(tomb).forEach(k => { if (tomb[k] > cutoff) out._meta.tombstones[c][k] = tomb[k]; });
+
+      if (c === 'transactions') {
+        list.sort((a, b) => (idTime(b.id) - idTime(a.id)) || (String(b.id) < String(a.id) ? -1 : 1));
+      } else {
+        list.sort((a, b) => (idTime(a.id) - idTime(b.id)) || (String(a.id) < String(b.id) ? -1 : 1));
+      }
+      out[c] = list;
+    });
+
+    SCALARS.forEach(s => {
+      const r = mergeScalar(local[s], lm.scalars[s] || 0, remote[s], rm.scalars[s] || 0);
+      if (r.val !== undefined) out[s] = r.val;
+      if (r.ts) out._meta.scalars[s] = r.ts;
+    });
+    return out;
+  }
+
+  function isEmpty(snap) {
+    if (!snap) return true;
+    return FIELDS.every(f => {
+      const v = snap[f];
+      if (v == null) return true;
+      return Array.isArray(v) ? v.length === 0 : Object.keys(v).length === 0;
+    });
+  }
+
+  return { COLLECTIONS, SCALARS, FIELDS, stable, emptyMeta, normMeta, stampCollection, mergeSnapshots, isEmpty };
+})();
+
 const SYNC_DOC_COLLECTION = 'syncs';
 
 const syncEngine = {
@@ -2059,21 +2204,43 @@ const syncEngine = {
     return e2ee.decryptJSON(dataKey, snap.data().payload);
   },
 
-  // Encrypts and writes a full snapshot (all local data) up to the cloud
-  // for this user. Requires an already-unlocked data key on this device.
+  // Writes this device's snapshot to the cloud — but never blindly. Inside a
+  // transaction it reads what's currently there, MERGES it with what we're
+  // sending, and writes the union. So a device holding older data can add to
+  // the cloud copy but can't wipe what another device just added. Returns the
+  // merged snapshot so the caller can fold anything new back into local state.
   async pushSnapshot(data) {
     const user = this.getCurrentUser();
     if (!user) throw new Error('Sign in with Google first.');
     const dataKey = await this.getUnlockedDataKey(user.uid);
     if (!dataKey) throw new Error('Locked — enter your passphrase or recovery code first.');
-    const payload = await e2ee.encryptJSON(dataKey, data);
     const ref = this.docRefForUser(user.uid);
-    await ref.set({ payload, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    let result = data;
+    await this._db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      let outgoing = data;
+      let cloud = null;
+      if (snap.exists && snap.data().payload) {
+        try {
+          cloud = await e2ee.decryptJSON(dataKey, snap.data().payload);
+        } catch (e) {
+          // Refuse to overwrite something we can't read.
+          throw new Error('Could not read the synced copy to merge with, so nothing was overwritten.');
+        }
+        outgoing = syncMerge.mergeSnapshots(data, cloud);
+      }
+      result = outgoing;
+      if (cloud && syncMerge.stable(outgoing) === syncMerge.stable(cloud)) return; // cloud already up to date
+      const payload = await e2ee.encryptJSON(dataKey, outgoing);
+      tx.set(ref, { payload, updatedAt: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    });
+    return result;
   },
 
   // Subscribes to live changes on the signed-in user's document; calls
   // onChange(data) with decrypted data whenever it updates (including the
-  // first read). Decryption is async, so this fires the callback once the
+  // first read), or onChange(null) once the server confirms there's no
+  // payload yet. Decryption is async, so this fires the callback once the
   // decrypt resolves rather than synchronously inside onSnapshot.
   subscribe(onChange, onError) {
     const user = this.getCurrentUser();
@@ -2082,7 +2249,11 @@ const syncEngine = {
     const ref = this.docRefForUser(user.uid);
     this._unsubscribeSnapshot = ref.onSnapshot(
       snap => {
-        if (!snap.exists || !snap.data().payload) return;
+        if (!snap.exists || !snap.data().payload) {
+          // A cold cache also looks "empty", so only trust a server answer.
+          if (!snap.metadata.fromCache) onChange(null);
+          return;
+        }
         this.getUnlockedDataKey(user.uid).then(dataKey => {
           if (!dataKey) { if (onError) onError(new Error('Locked — enter your passphrase or recovery code first.')); return; }
           return e2ee.decryptJSON(dataKey, snap.data().payload).then(onChange);
@@ -2391,11 +2562,28 @@ function App() {
   const [syncError, setSyncError] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
 
+  // Refs always hold the LATEST data (React state can lag a render behind, and
+  // timers/listeners capture old state). Everything that saves, merges or
+  // syncs reads these, which is what stops stale data overwriting new entries.
+  const stateRef = React.useRef({ transactions: [], budgets: {}, dailyBudgets: {}, goals: [], recurring: [], pinnedShortcuts: [] });
+  const metaRef = React.useRef(syncMerge.emptyMeta());
+  const loadedRef = React.useRef(false);
+  const pendingRemoteRef = React.useRef(null);
+  const syncUserRef = React.useRef(null);
+  const lastSyncedRef = React.useRef(null);
+  const pushTimerRef = React.useRef(null);
+  const pushingRef = React.useRef(false);
+  const pushAgainRef = React.useRef(false);
+  const schedulePushRef = React.useRef(() => {});
+  const runPushRef = React.useRef(async () => {});
+  const absorbRemoteRef = React.useRef(() => {});
+  syncUserRef.current = syncUser;
+
   // Load from storage
   useEffect(() => {
     (async () => {
       try {
-        const [txRes, budRes, dailyRes, goalRes, recRes, pinRes, themeRes, tutorialRes] = await Promise.allSettled([
+        const [txRes, budRes, dailyRes, goalRes, recRes, pinRes, themeRes, tutorialRes, metaRes] = await Promise.allSettled([
           storageAdapter.get('pera-log:transactions'),
           storageAdapter.get('pera-log:budgets'),
           storageAdapter.get('pera-log:dailyBudgets'),
@@ -2404,13 +2592,28 @@ function App() {
           storageAdapter.get('pera-log:pinnedShortcuts'),
           storageAdapter.get('pera-log:theme'),
           storageAdapter.get('pera-log:hasSeenTutorial'),
+          storageAdapter.get('pera-log:syncMeta'),
         ]);
-        if (txRes.status === 'fulfilled' && txRes.value) setTransactions(JSON.parse(txRes.value.value));
-        if (budRes.status === 'fulfilled' && budRes.value) setBudgets(JSON.parse(budRes.value.value));
-        if (dailyRes.status === 'fulfilled' && dailyRes.value) setDailyBudgets(JSON.parse(dailyRes.value.value));
-        if (goalRes.status === 'fulfilled' && goalRes.value) setGoals(JSON.parse(goalRes.value.value));
-        if (recRes.status === 'fulfilled' && recRes.value) setRecurring(JSON.parse(recRes.value.value));
-        if (pinRes.status === 'fulfilled' && pinRes.value) setPinnedShortcuts(JSON.parse(pinRes.value.value));
+        const parseVal = (res) => {
+          if (res.status !== 'fulfilled' || !res.value) return undefined;
+          try { return JSON.parse(res.value.value); } catch (e) { return undefined; }
+        };
+        [
+          ['transactions', txRes, setTransactions],
+          ['budgets', budRes, setBudgets],
+          ['dailyBudgets', dailyRes, setDailyBudgets],
+          ['goals', goalRes, setGoals],
+          ['recurring', recRes, setRecurring],
+          ['pinnedShortcuts', pinRes, setPinnedShortcuts],
+        ].forEach(([name, res, setter]) => {
+          const v = parseVal(res);
+          if (v === undefined || v === null || typeof v !== 'object') return;
+          if (Array.isArray(v) !== Array.isArray(stateRef.current[name])) return;
+          stateRef.current[name] = v;
+          setter(v);
+        });
+        const metaVal = parseVal(metaRes);
+        if (metaVal) metaRef.current = syncMerge.normMeta(metaVal);
         if (themeRes.status === 'fulfilled' && themeRes.value) {
           setTheme(JSON.parse(themeRes.value.value));
         } else if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -2424,41 +2627,50 @@ function App() {
       } catch (e) {
         console.error('Load error', e);
       }
+      loadedRef.current = true;
       setLoaded(true);
+      // A cloud snapshot may have arrived while we were still reading local storage.
+      if (pendingRemoteRef.current) {
+        const p = pendingRemoteRef.current; pendingRemoteRef.current = null;
+        absorbRemoteRef.current(p);
+      }
+      schedulePushRef.current(1500);
     })();
   }, []);
 
-  // Persist helpers
-  const saveTransactions = useCallback(async (next) => {
-    setTransactions(next);
-    try { await storageAdapter.set('pera-log:transactions', JSON.stringify(next)); }
-    catch (e) { console.error(e); }
+  // Persist helpers. Every change goes through commit(), which works from the
+  // latest data (not a stale render), stamps what was added/edited/deleted so
+  // sync can merge it, saves locally right away, then schedules a cloud push.
+  const STORAGE_KEYS = {
+    transactions: 'pera-log:transactions', budgets: 'pera-log:budgets', dailyBudgets: 'pera-log:dailyBudgets',
+    goals: 'pera-log:goals', recurring: 'pera-log:recurring', pinnedShortcuts: 'pera-log:pinnedShortcuts',
+  };
+  const commit = useCallback(async (name, nextOrFn) => {
+    const prev = stateRef.current[name];
+    const next = typeof nextOrFn === 'function' ? nextOrFn(prev) : nextOrFn;
+    const now = Date.now();
+    if (syncMerge.COLLECTIONS.includes(name)) {
+      syncMerge.stampCollection(metaRef.current, name, prev, next, now);
+    } else if (syncMerge.stable(prev) !== syncMerge.stable(next)) {
+      metaRef.current.scalars[name] = now;
+    }
+    stateRef.current[name] = next;
+    ({ transactions: setTransactions, budgets: setBudgets, dailyBudgets: setDailyBudgets,
+       goals: setGoals, recurring: setRecurring, pinnedShortcuts: setPinnedShortcuts })[name](next);
+    schedulePushRef.current();
+    try {
+      await Promise.all([
+        storageAdapter.set(STORAGE_KEYS[name], JSON.stringify(next)),
+        storageAdapter.set('pera-log:syncMeta', JSON.stringify(metaRef.current)),
+      ]);
+    } catch (e) { console.error(e); }
   }, []);
-  const saveBudgets = useCallback(async (next) => {
-    setBudgets(next);
-    try { await storageAdapter.set('pera-log:budgets', JSON.stringify(next)); }
-    catch (e) { console.error(e); }
-  }, []);
-  const saveDailyBudgets = useCallback(async (next) => {
-    setDailyBudgets(next);
-    try { await storageAdapter.set('pera-log:dailyBudgets', JSON.stringify(next)); }
-    catch (e) { console.error(e); }
-  }, []);
-  const saveGoals = useCallback(async (next) => {
-    setGoals(next);
-    try { await storageAdapter.set('pera-log:goals', JSON.stringify(next)); }
-    catch (e) { console.error(e); }
-  }, []);
-  const saveRecurring = useCallback(async (next) => {
-    setRecurring(next);
-    try { await storageAdapter.set('pera-log:recurring', JSON.stringify(next)); }
-    catch (e) { console.error(e); }
-  }, []);
-  const savePinnedShortcuts = useCallback(async (next) => {
-    setPinnedShortcuts(next);
-    try { await storageAdapter.set('pera-log:pinnedShortcuts', JSON.stringify(next)); }
-    catch (e) { console.error(e); }
-  }, []);
+  const saveTransactions = useCallback((next) => commit('transactions', next), [commit]);
+  const saveBudgets = useCallback((next) => commit('budgets', next), [commit]);
+  const saveDailyBudgets = useCallback((next) => commit('dailyBudgets', next), [commit]);
+  const saveGoals = useCallback((next) => commit('goals', next), [commit]);
+  const saveRecurring = useCallback((next) => commit('recurring', next), [commit]);
+  const savePinnedShortcuts = useCallback((next) => commit('pinnedShortcuts', next), [commit]);
   const toggleTheme = useCallback(async () => {
     setTheme(current => {
       const next = current === 'dark' ? 'light' : 'dark';
@@ -2468,20 +2680,68 @@ function App() {
   }, []);
 
   // ---- Cloud sync wiring (Google Sign-In) ----
-  // Applying a snapshot pulled from Firestore updates local state + storage
-  // without re-triggering a push back to the cloud (avoids echo loops).
-  const applyingRemoteRef = React.useRef(false);
+  const buildSnapshot = () => ({ ...stateRef.current, _meta: metaRef.current });
 
-  const applyRemoteSnapshot = useCallback((data) => {
-    applyingRemoteRef.current = true;
-    if (data.transactions) { setTransactions(data.transactions); storageAdapter.set('pera-log:transactions', JSON.stringify(data.transactions)); }
-    if (data.budgets) { setBudgets(data.budgets); storageAdapter.set('pera-log:budgets', JSON.stringify(data.budgets)); }
-    if (data.dailyBudgets) { setDailyBudgets(data.dailyBudgets); storageAdapter.set('pera-log:dailyBudgets', JSON.stringify(data.dailyBudgets)); }
-    if (data.goals) { setGoals(data.goals); storageAdapter.set('pera-log:goals', JSON.stringify(data.goals)); }
-    if (data.recurring) { setRecurring(data.recurring); storageAdapter.set('pera-log:recurring', JSON.stringify(data.recurring)); }
-    if (data.pinnedShortcuts) { setPinnedShortcuts(data.pinnedShortcuts); storageAdapter.set('pera-log:pinnedShortcuts', JSON.stringify(data.pinnedShortcuts)); }
-    setTimeout(() => { applyingRemoteRef.current = false; }, 0);
-  }, []);
+  // Folds a cloud snapshot into local data by MERGING (never replacing), so a
+  // stale or echoed snapshot can't remove anything newer that's only local yet.
+  absorbRemoteRef.current = (remote) => {
+    if (!remote || typeof remote !== 'object') return;
+    if (!loadedRef.current) {
+      pendingRemoteRef.current = pendingRemoteRef.current ? syncMerge.mergeSnapshots(pendingRemoteRef.current, remote) : remote;
+      return;
+    }
+    const merged = syncMerge.mergeSnapshots(buildSnapshot(), remote);
+    const setters = { transactions: setTransactions, budgets: setBudgets, dailyBudgets: setDailyBudgets,
+      goals: setGoals, recurring: setRecurring, pinnedShortcuts: setPinnedShortcuts };
+    syncMerge.FIELDS.forEach(name => {
+      if (merged[name] === undefined) return;
+      if (syncMerge.stable(merged[name]) !== syncMerge.stable(stateRef.current[name])) {
+        stateRef.current[name] = merged[name];
+        setters[name](merged[name]);
+        storageAdapter.set(STORAGE_KEYS[name], JSON.stringify(merged[name]));
+      }
+    });
+    metaRef.current = merged._meta;
+    storageAdapter.set('pera-log:syncMeta', JSON.stringify(merged._meta));
+  };
+  const applyRemoteSnapshot = useCallback((data) => { absorbRemoteRef.current(data); }, []);
+
+  // Debounced push, always built from the latest data. Skips when the cloud
+  // already matches, retries after failures, and queues one more run if edits
+  // arrive while a push is in flight.
+  schedulePushRef.current = (delay = 800) => {
+    if (!syncUserRef.current || !loadedRef.current) return;
+    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(() => runPushRef.current(), delay);
+  };
+  runPushRef.current = async () => {
+    pushTimerRef.current = null;
+    if (!syncUserRef.current || !loadedRef.current) return;
+    if (pushingRef.current) { pushAgainRef.current = true; return; }
+    const snap = buildSnapshot();
+    if (lastSyncedRef.current === null ? syncMerge.isEmpty(snap) : syncMerge.stable(snap) === lastSyncedRef.current) {
+      setSyncStatus('synced');
+      return;
+    }
+    pushingRef.current = true;
+    try {
+      setSyncStatus('syncing');
+      const result = await syncEngine.pushSnapshot(snap);
+      lastSyncedRef.current = syncMerge.stable(result);
+      absorbRemoteRef.current(result); // pick up anything another device had added
+      setSyncStatus('synced');
+      setSyncError(null);
+    } catch (e) {
+      setSyncStatus('error');
+      const message = e.message || 'Could not sync';
+      setSyncError(message);
+      // Your data is safe on this device; try again shortly (unless it's just locked).
+      if (!/^Locked/.test(message)) schedulePushRef.current(15000);
+    } finally {
+      pushingRef.current = false;
+      if (pushAgainRef.current) { pushAgainRef.current = false; schedulePushRef.current(300); }
+    }
+  };
 
   // Watch Firebase's own auth state. This picks up an existing Google session
   // automatically (e.g. after a page reload) without the person re-clicking
@@ -2505,34 +2765,37 @@ function App() {
     setSyncStatus('syncing');
     setSyncError(null);
     syncEngine.subscribe(
-      (data) => { if (!cancelled) { applyRemoteSnapshot(data); setSyncStatus('synced'); } },
+      (data) => {
+        if (cancelled) return;
+        lastSyncedRef.current = data ? syncMerge.stable(data) : null;
+        if (data) absorbRemoteRef.current(data);
+        setSyncStatus('synced');
+        // If local has anything the cloud doesn't, this pushes it; otherwise it's a no-op.
+        schedulePushRef.current(300);
+      },
       (err) => { if (!cancelled) { setSyncStatus('error'); setSyncError(err.message || 'Sync error'); } }
     );
     return () => { cancelled = true; syncEngine.stopSubscription(); };
-  }, [syncUser, applyRemoteSnapshot]);
+  }, [syncUser]);
 
-  // Debounced push: whenever local data changes (and it wasn't just applied
-  // FROM the cloud), push a fresh snapshot up, coalescing rapid edits.
-  const pushTimerRef = React.useRef(null);
-  const pushToCloud = useCallback(() => {
-    if (!syncUser || applyingRemoteRef.current) return;
-    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-    pushTimerRef.current = setTimeout(async () => {
-      try {
-        setSyncStatus('syncing');
-        await syncEngine.pushSnapshot({
-          transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts,
-        });
-        setSyncStatus('synced');
-        setSyncError(null);
-      } catch (e) {
-        setSyncStatus('error');
-        setSyncError(e.message || 'Could not sync');
-      }
-    }, 1200);
-  }, [syncUser, transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts]);
-
-  useEffect(() => { pushToCloud(); }, [transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts, pushToCloud]);
+  // Don't let a closing/backgrounded tab strand a pending push, and retry when
+  // the connection or the app comes back.
+  useEffect(() => {
+    const flushNow = () => {
+      if (pushTimerRef.current) { clearTimeout(pushTimerRef.current); pushTimerRef.current = null; }
+      runPushRef.current();
+    };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flushNow(); else schedulePushRef.current(300); };
+    const onOnline = () => schedulePushRef.current(300);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', flushNow);
+    window.addEventListener('online', onOnline);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', flushNow);
+      window.removeEventListener('online', onOnline);
+    };
+  }, []);
 
   // Signs in with Google, then either pulls existing cloud data for this
   // account or pushes what's currently on this device as the starting point.
@@ -2652,12 +2915,8 @@ function App() {
       // when the account is genuinely starting fresh, which isn't the case
       // here.
       if (unlockResult.recoveredLegacyData) {
-        const merged = {
-          transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts,
-          ...unlockResult.recoveredLegacyData,
-        };
-        applyRemoteSnapshot(merged);
-        await syncEngine.pushSnapshot(merged);
+        applyRemoteSnapshot(unlockResult.recoveredLegacyData);
+        await syncEngine.pushSnapshot(buildSnapshot());
         await finishSignIn(user);
         return { ok: true };
       }
@@ -2710,7 +2969,7 @@ function App() {
         || Object.keys(budgets).length > 0 || Object.keys(dailyBudgets || {}).length > 0;
 
       if (!hasLocalData) {
-        await syncEngine.pushSnapshot({ transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts });
+        await syncEngine.pushSnapshot(buildSnapshot());
         await finishSignIn(user);
         return { ok: true };
       }
@@ -2724,7 +2983,7 @@ function App() {
           confirmLabel: 'Use this device\'s data',
           onConfirm: async () => {
             try {
-              await syncEngine.pushSnapshot({ transactions, budgets, dailyBudgets, goals, recurring, pinnedShortcuts });
+              await syncEngine.pushSnapshot(buildSnapshot());
               await finishSignIn(user);
               resolve({ ok: true });
             } catch (e) {
@@ -2795,8 +3054,7 @@ function App() {
   }, [syncUser, ensureEncryptionUnlocked]);
 
   const addTransaction = (tx) => {
-    const next = [{ ...tx, id: uid() }, ...transactions];
-    saveTransactions(next);
+    saveTransactions(prev => [{ ...tx, id: uid() }, ...prev]);
     if (tx.isAdjustment) {
       showToast('Adjustment logged');
     } else {
@@ -2805,13 +3063,12 @@ function App() {
   };
 
   const updateTransaction = (id, updates) => {
-    const next = transactions.map(t => t.id === id ? { ...t, ...updates } : t);
-    saveTransactions(next);
+    saveTransactions(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
     showToast('Entry updated');
   };
 
   const deleteTransaction = (id) => {
-    saveTransactions(transactions.filter(t => t.id !== id));
+    saveTransactions(prev => prev.filter(t => t.id !== id));
     showToast('Entry deleted');
   };
 
