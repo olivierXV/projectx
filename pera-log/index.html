@@ -1861,6 +1861,15 @@ const syncMerge = (() => {
   const FIELDS = ['transactions', 'budgets', 'dailyBudgets', 'goals', 'recurring', 'pinnedShortcuts'];
   const TOMBSTONE_TTL = 120 * 24 * 60 * 60 * 1000;
 
+  // Edit timestamps use "server time": this device's clock plus a correction
+  // measured against Firestore's server clock (see syncEngine.measureClockOffset),
+  // so a device with a wrong clock still stamps edits on the same timeline as
+  // every other device. The correction is 0 until measured.
+  let clockOffset = 0;
+  const now = () => Date.now() + clockOffset;
+  const setOffset = (ms) => { clockOffset = Number.isFinite(ms) ? Math.round(ms) : 0; };
+  const getOffset = () => clockOffset;
+
   // Key-sorted JSON so two equal snapshots always compare equal as strings.
   function stable(v) {
     if (v === null || typeof v !== 'object') return JSON.stringify(v);
@@ -1934,7 +1943,7 @@ const syncMerge = (() => {
     local = local || {}; remote = remote || {};
     const lm = normMeta(local._meta), rm = normMeta(remote._meta);
     const out = { _meta: emptyMeta() };
-    const cutoff = Date.now() - TOMBSTONE_TTL;
+    const cutoff = now() - TOMBSTONE_TTL;
 
     COLLECTIONS.forEach(c => {
       const best = new Map(); // key -> { item, ts }
@@ -1988,7 +1997,7 @@ const syncMerge = (() => {
     });
   }
 
-  return { COLLECTIONS, SCALARS, FIELDS, stable, emptyMeta, normMeta, stampCollection, mergeSnapshots, isEmpty };
+  return { now, setOffset, getOffset, COLLECTIONS, SCALARS, FIELDS, stable, emptyMeta, normMeta, stampCollection, mergeSnapshots, isEmpty };
 })();
 
 const SYNC_DOC_COLLECTION = 'syncs';
@@ -2202,6 +2211,24 @@ const syncEngine = {
     const dataKey = await this.getUnlockedDataKey(user.uid);
     if (!dataKey) throw new Error('Locked — enter your passphrase or recovery code first.');
     return e2ee.decryptJSON(dataKey, snap.data().payload);
+  },
+
+  // Measures how far this device's clock is from Firestore's server clock
+  // (server minus device, in ms). Writes a server timestamp to the user's own
+  // doc (separate field; the encrypted payload and keys aren't touched), then
+  // reads it back from the server. The write is timed locally and the server
+  // stamp lands somewhere inside that window, so the midpoint is used.
+  async measureClockOffset() {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('Sign in with Google first.');
+    const ref = this.docRefForUser(user.uid);
+    const t0 = Date.now();
+    await ref.set({ clockProbe: window.firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    const t1 = Date.now();
+    const snap = await ref.get({ source: 'server' });
+    const ts = snap.exists && snap.data().clockProbe;
+    if (!ts || typeof ts.toMillis !== 'function') throw new Error('No server time returned');
+    return ts.toMillis() - (t0 + t1) / 2;
   },
 
   // Writes this device's snapshot to the cloud — but never blindly. Inside a
@@ -2583,7 +2610,7 @@ function App() {
   useEffect(() => {
     (async () => {
       try {
-        const [txRes, budRes, dailyRes, goalRes, recRes, pinRes, themeRes, tutorialRes, metaRes] = await Promise.allSettled([
+        const [txRes, budRes, dailyRes, goalRes, recRes, pinRes, themeRes, tutorialRes, metaRes, offsetRes] = await Promise.allSettled([
           storageAdapter.get('pera-log:transactions'),
           storageAdapter.get('pera-log:budgets'),
           storageAdapter.get('pera-log:dailyBudgets'),
@@ -2593,6 +2620,7 @@ function App() {
           storageAdapter.get('pera-log:theme'),
           storageAdapter.get('pera-log:hasSeenTutorial'),
           storageAdapter.get('pera-log:syncMeta'),
+          storageAdapter.get('pera-log:clockOffset'),
         ]);
         const parseVal = (res) => {
           if (res.status !== 'fulfilled' || !res.value) return undefined;
@@ -2612,6 +2640,8 @@ function App() {
           stateRef.current[name] = v;
           setter(v);
         });
+        const savedOffset = parseVal(offsetRes);
+        if (typeof savedOffset === 'number') syncMerge.setOffset(savedOffset);
         const metaVal = parseVal(metaRes);
         if (metaVal) metaRef.current = syncMerge.normMeta(metaVal);
         if (themeRes.status === 'fulfilled' && themeRes.value) {
@@ -2648,7 +2678,7 @@ function App() {
   const commit = useCallback(async (name, nextOrFn) => {
     const prev = stateRef.current[name];
     const next = typeof nextOrFn === 'function' ? nextOrFn(prev) : nextOrFn;
-    const now = Date.now();
+    const now = syncMerge.now();
     if (syncMerge.COLLECTIONS.includes(name)) {
       syncMerge.stampCollection(metaRef.current, name, prev, next, now);
     } else if (syncMerge.stable(prev) !== syncMerge.stable(next)) {
@@ -2705,6 +2735,24 @@ function App() {
     storageAdapter.set('pera-log:syncMeta', JSON.stringify(merged._meta));
   };
   const applyRemoteSnapshot = useCallback((data) => { absorbRemoteRef.current(data); }, []);
+
+  // Re-measures the device-vs-server clock difference (at most hourly, unless
+  // forced) and remembers it so offline edits are still corrected.
+  const lastClockCheckRef = React.useRef(0);
+  const refreshClockRef = React.useRef(async () => {});
+  refreshClockRef.current = async (force) => {
+    if (!syncUserRef.current) return;
+    if (!force && Date.now() - lastClockCheckRef.current < 60 * 60 * 1000) return;
+    lastClockCheckRef.current = Date.now();
+    try {
+      const off = await syncEngine.measureClockOffset();
+      syncMerge.setOffset(off);
+      storageAdapter.set('pera-log:clockOffset', JSON.stringify(syncMerge.getOffset()));
+    } catch (e) {
+      console.warn('Clock check skipped', e);
+      lastClockCheckRef.current = 0; // try again next time
+    }
+  };
 
   // Debounced push, always built from the latest data. Skips when the cloud
   // already matches, retries after failures, and queues one more run if edits
@@ -2767,6 +2815,7 @@ function App() {
     syncEngine.subscribe(
       (data) => {
         if (cancelled) return;
+        refreshClockRef.current(); // once unlocked and connected, sync timestamps to the server clock
         lastSyncedRef.current = data ? syncMerge.stable(data) : null;
         if (data) absorbRemoteRef.current(data);
         setSyncStatus('synced');
@@ -2785,8 +2834,8 @@ function App() {
       if (pushTimerRef.current) { clearTimeout(pushTimerRef.current); pushTimerRef.current = null; }
       runPushRef.current();
     };
-    const onVisibility = () => { if (document.visibilityState === 'hidden') flushNow(); else schedulePushRef.current(300); };
-    const onOnline = () => schedulePushRef.current(300);
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flushNow(); else { refreshClockRef.current(); schedulePushRef.current(300); } };
+    const onOnline = () => { refreshClockRef.current(true); schedulePushRef.current(300); };
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pagehide', flushNow);
     window.addEventListener('online', onOnline);
