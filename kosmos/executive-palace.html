@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B1B3A">
 <title>Office of the President</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -280,7 +286,17 @@ footer .motto { margin-top: 14px; color: #CDAE69; font: italic 400 1rem/1.4 var(
   .tl li { grid-template-columns: 4.6em minmax(0, 1fr); }
   .bracket span { font-size: 0.66rem; }
 }
+@media (max-width: 720px) {
+  .masthead .wrap { gap: 8px 12px; padding-block: 10px; }
+  .nav { order: 3; flex-basis: 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-inline: -20px; padding-inline: 12px; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav a { white-space: nowrap; padding: 10px 10px; }
+  .theme-btn { padding: 8px 10px; }
+}
 </style>
+</head>
+<body>
+
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="palace" viewBox="0 0 240 190"><g fill="currentColor">
     <!-- flagpole and pennant -->
@@ -765,3 +781,6 @@ footer .motto { margin-top: 14px; color: #CDAE69; font: italic 400 1rem/1.4 var(
   renderCabinet();
 })();
 </script>
+
+</body>
+</html>
