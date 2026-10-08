@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B1B3A">
 <title>Federal Republic of Latrevia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -227,7 +233,17 @@ footer .motto { margin-top: 14px; color: var(--gold-text); font: italic 400 1rem
   footer .wrap { grid-template-columns: minmax(0, 1fr); }
   .state-count { margin-left: 0; flex-basis: 100%; }
 }
+@media (max-width: 720px) {
+  .masthead .wrap { gap: 8px 12px; padding-block: 10px; }
+  .nav { order: 3; flex-basis: 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-inline: -20px; padding-inline: 12px; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav a { white-space: nowrap; padding: 10px 10px; }
+  .theme-btn { padding: 8px 10px; }
+}
 </style>
+</head>
+<body>
+
 
 <a class="skip" href="#main">Skip to content</a>
 
@@ -645,3 +661,6 @@ footer .motto { margin-top: 14px; color: var(--gold-text); font: italic 400 1rem
   renderStates();
 })();
 </script>
+
+</body>
+</html>
