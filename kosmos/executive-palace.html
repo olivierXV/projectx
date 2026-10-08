@@ -1,0 +1,767 @@
+<title>Office of the President</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: the Federal portal's system (navy masthead, flag band, gold hairlines) with a ceremonial opening:
+   the Executive Palace mark beside the title, then a profile, a filterable Cabinet, a roll of predecessors.
+   Dark is the default; light is opt-in through the toggle. */
+:root {
+  --bg: #0B1B3A;
+  --bg-2: #0E2145;
+  --card: #12294F;
+  --card-hi: #183463;
+  --line: #2A4274;
+  --fg: #F3EFE6;
+  --fg-2: #B7C3D8;
+  --gold: #B8964E;
+  --gold-text: #CDAE69;
+  --link: #8FB0CC;
+  --sky: #19B5F5;
+  --focus: #E5C77E;
+  --band-a: #07122A;
+  --band-b: #0B1B3A;
+  --band-fg: #F3EFE6;
+  --band-fg-2: #A9B7CE;
+  --on-gold: #0B1B3A;
+  --mark: #CDAE69;
+  --p-cdp: #6FB7E6;
+  --p-spp: #D8B65F;
+  --p-llp: #E07C86;
+  --p-ea: #7FC28F;
+  --p-ind: #9AA8C4;
+  --p-uc: #AE9FD6;
+  --p-reg: #6F86B4;
+  --p-sec: #4B6AA3;
+  --f-display: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+  --f-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F4F6FA; --bg-2: #E8EDF5; --card: #FFFFFF; --card-hi: #EEF2F9; --line: #C9D3E3;
+    --fg: #0B1B3A; --fg-2: #435578; --gold-text: #7A5F22; --link: #1F4E86; --sky: #0A8FD0; --focus: #1F4E86;
+    --mark: #0B1B3A;
+    --p-cdp: #1F78B4; --p-spp: #9A7418; --p-llp: #B03A48; --p-ea: #2E8B57; --p-ind: #66738F; --p-uc: #6E5BA8; --p-reg: #5A6E9E; --p-sec: #3F5C93;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F4F6FA; --bg-2: #E8EDF5; --card: #FFFFFF; --card-hi: #EEF2F9; --line: #C9D3E3;
+  --fg: #0B1B3A; --fg-2: #435578; --gold-text: #7A5F22; --link: #1F4E86; --sky: #0A8FD0; --focus: #1F4E86;
+  --mark: #0B1B3A;
+  --p-cdp: #1F78B4; --p-spp: #9A7418; --p-llp: #B03A48; --p-ea: #2E8B57; --p-ind: #66738F; --p-uc: #6E5BA8; --p-reg: #5A6E9E; --p-sec: #3F5C93;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 1rem/1.6 var(--f-body); -webkit-text-size-adjust: 100%; }
+a { color: var(--link); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; }
+
+.wrap { max-width: 1120px; margin-inline: auto; padding-inline: 20px; }
+.mono { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.skip { position: absolute; left: 12px; top: -60px; background: var(--gold); color: var(--on-gold); padding: 8px 14px; z-index: 20; font-weight: 600; }
+.skip:focus { top: 8px; }
+
+/* masthead */
+.flagband { display: grid; grid-template-rows: repeat(3, 3px); }
+.flagband i { display: block; background: #19B5F5; }
+.flagband i:nth-child(2) { background: #FFFFFF; }
+.topbar { background: var(--band-a); color: var(--band-fg-2); font-size: 0.8125rem; }
+.topbar .wrap { display: flex; flex-wrap: wrap; gap: 4px 20px; justify-content: space-between; align-items: center; padding-block: 7px; }
+.topbar .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.topbar .who img { width: 24px; height: auto; border-radius: 1px; flex: none; }
+.topbar .right { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; }
+.topbar a { color: var(--band-fg-2); }
+.topbar time { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--band-fg); white-space: nowrap; }
+.masthead { background: var(--band-b); color: var(--band-fg); border-bottom: 2px solid var(--gold); }
+.masthead .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding-block: 14px; }
+.brand { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; margin-right: auto; min-width: 0; }
+.brand svg { width: 76px; height: auto; flex: none; color: #CDAE69; }
+.brand b { display: block; font: 500 1.3rem/1.15 var(--f-display); letter-spacing: 0.005em; }
+.brand span span { display: block; font-size: 0.78rem; color: var(--band-fg-2); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+.nav { display: flex; flex-wrap: wrap; gap: 4px 4px; }
+.nav a { color: var(--band-fg); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 8px 9px; border-bottom: 2px solid transparent; }
+.nav a:hover { border-bottom-color: var(--gold); }
+.theme-btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: transparent; border: 1px solid #5A6E96; color: var(--band-fg); padding: 7px 12px; font-size: 0.82rem; font-weight: 500; border-radius: 3px; }
+.theme-btn:hover { border-color: var(--gold); }
+.theme-btn svg { width: 16px; height: 16px; flex: none; }
+
+/* hero */
+.hero { background: var(--bg); border-bottom: 1px solid var(--line); }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px 56px; align-items: center; padding-block: 56px 44px; }
+.eyebrow { color: var(--gold-text); margin-bottom: 14px; }
+.hero h1 { font: 500 clamp(2.4rem, 5.4vw, 3.9rem)/1.04 var(--f-display); letter-spacing: -0.01em; text-wrap: balance; }
+.hero .lead { margin-top: 18px; max-width: 54ch; color: var(--fg-2); font-size: 1.1rem; }
+.quick { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { display: inline-block; text-decoration: none; background: var(--gold); color: var(--on-gold); border: 1px solid var(--gold); padding: 10px 18px; font-weight: 600; border-radius: 3px; font-size: 0.92rem; }
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); font-weight: 500; }
+.btn.ghost:hover { border-color: var(--gold); filter: none; }
+.hero-art { display: grid; gap: 10px; justify-items: center; }
+.hero-art svg { width: min(100%, 420px); height: auto; color: var(--mark); }
+.hero-art .mono { color: var(--fg-2); text-align: center; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); border-top: 2px solid var(--gold); background: var(--bg); }
+.facts-in { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 0; }
+.fact { padding: 16px 18px 18px 0; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.fact + .fact { padding-left: 18px; border-left: 1px solid var(--line); }
+.fact dt { color: var(--gold-text); }
+.fact dd { font: 500 1.1rem/1.3 var(--f-display); }
+.facts-band { background: var(--bg); border-bottom: 1px solid var(--line); }
+.facts-band .wrap { border-top: 1px solid var(--line); }
+
+/* sections */
+section { padding-block: 64px; border-bottom: 1px solid var(--line); }
+section.alt { background: var(--bg-2); }
+.sec-head { display: grid; gap: 10px; margin-bottom: 32px; max-width: 70ch; }
+.sec-head .mono { color: var(--gold-text); }
+.sec-head h2 { font: 500 clamp(1.7rem, 3.4vw, 2.4rem)/1.15 var(--f-display); text-wrap: balance; }
+.sec-head p { color: var(--fg-2); }
+h3.sub { font: 500 1.4rem/1.2 var(--f-display); margin-bottom: 16px; }
+
+/* president */
+.profile { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 36px 56px; align-items: start; }
+.prose { display: grid; gap: 14px; max-width: 64ch; color: var(--fg-2); }
+.prose p:first-child { color: var(--fg); font-size: 1.08rem; }
+.glance { background: var(--card); border: 1px solid var(--line); border-top: 2px solid var(--gold); border-radius: 3px; padding: 18px 20px; }
+.glance h3 { font: 500 1.25rem/1.2 var(--f-display); margin-bottom: 6px; }
+.kv { display: grid; }
+.kv div { display: grid; grid-template-columns: minmax(0, 8.5em) minmax(0, 1fr); gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 0.92rem; }
+.kv div:first-child { border-top: 0; }
+.kv dt { color: var(--gold-text); padding-top: 3px; }
+.kv dd { color: var(--fg); }
+.career { margin-top: 52px; }
+.tl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 0 48px; }
+.tl li { display: grid; grid-template-columns: 5.2em minmax(0, 1fr); gap: 14px; padding: 11px 0; border-top: 1px solid var(--line); font-size: 0.93rem; color: var(--fg-2); }
+.tl li b { color: var(--gold-text); font: 500 0.78rem/1.7 var(--f-mono); letter-spacing: 0.04em; }
+.tl li strong { color: var(--fg); font-weight: 600; }
+.tl li.now b, .tl li.now strong { color: var(--fg); }
+.tl li.now { background: linear-gradient(90deg, rgba(184,150,78,0.16), transparent 70%); }
+
+/* cabinet */
+.pm { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px 24px; align-items: start; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--gold); padding: 22px 24px; border-radius: 3px; margin-bottom: 28px; }
+.mono-box { width: 54px; height: 54px; flex: none; display: grid; place-items: center; border: 1px solid var(--gold); border-radius: 2px; font: 500 1.25rem/1 var(--f-display); color: var(--gold-text); background: var(--bg); letter-spacing: 0.02em; }
+.pm h3 { font: 500 1.5rem/1.2 var(--f-display); margin: 4px 0 8px; }
+.pm p { color: var(--fg-2); max-width: 72ch; }
+.pm .mono { color: var(--gold-text); }
+.pm p + p { margin-top: 8px; }
+.cab-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; align-items: center; }
+.cab-count { margin-left: auto; color: var(--fg-2); }
+.chip { cursor: pointer; background: transparent; border: 1px solid var(--line); color: var(--fg); padding: 5px 12px; border-radius: 999px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 7px; }
+.chip:hover { border-color: var(--gold); }
+.chip[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--on-gold); font-weight: 600; }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--p-ind)); flex: none; }
+.cab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; align-items: start; }
+.min { background: var(--card); border: 1px solid var(--line); border-radius: 3px; padding: 16px 18px 18px; display: grid; gap: 10px; min-width: 0; border-top: 3px solid var(--c, var(--p-ind)); }
+.min-top { display: flex; gap: 12px; align-items: center; min-width: 0; }
+.min-top .mono-box { width: 44px; height: 44px; font-size: 1.05rem; }
+.min h3 { font: 600 1.05rem/1.25 var(--f-body); }
+.min .role { color: var(--gold-text); margin-top: 2px; }
+.pty { display: inline-flex; align-items: center; gap: 7px; font-size: 0.8rem; color: var(--fg-2); }
+.pty i { width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--p-ind)); flex: none; }
+.min p { font-size: 0.9rem; color: var(--fg-2); }
+.min p b { display: block; font: 500 0.7rem/1.6 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold-text); }
+.tagline { display: inline-block; font-size: 0.78rem; border: 1px solid var(--line); border-radius: 2px; padding: 2px 8px; color: var(--fg); }
+[data-p="cdp"] { --c: var(--p-cdp); }
+[data-p="spp"] { --c: var(--p-spp); }
+[data-p="llp"] { --c: var(--p-llp); }
+[data-p="ea"] { --c: var(--p-ea); }
+[data-p="ind"] { --c: var(--p-ind); }
+[data-p="uc"] { --c: var(--p-uc); }
+[data-p="reg"] { --c: var(--p-reg); }
+[data-p="sec"] { --c: var(--p-sec); }
+.house { margin-top: 56px; }
+.house > p { color: var(--fg-2); max-width: 72ch; margin-bottom: 20px; }
+.bar-wrap { position: relative; padding-top: 30px; }
+.bracket { position: absolute; top: 0; left: 0; width: 55%; border-top: 2px solid var(--gold); height: 22px; border-left: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+.bracket span { position: absolute; top: -1px; left: 0; right: 0; padding: 4px 8px 0; color: var(--gold-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { display: flex; height: 30px; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
+.bar i { display: block; background: var(--c); border-right: 2px solid var(--bg-2); }
+.bar i:last-child { border-right: 0; }
+.legend { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 0 32px; }
+.legend li { display: flex; align-items: baseline; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 0.9rem; color: var(--fg-2); }
+.legend li i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); flex: none; align-self: center; }
+.legend li span:nth-child(2) { color: var(--fg); flex: 1; min-width: 0; }
+.legend li .mono { color: var(--gold-text); white-space: nowrap; }
+.note { margin-top: 12px; font-size: 0.88rem; color: var(--fg-2); }
+
+/* predecessors */
+.era { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr); gap: 8px 40px; padding-block: 24px; border-top: 2px solid var(--gold); }
+.era + .era { margin-top: 8px; }
+.era h3 { font: 500 1.3rem/1.2 var(--f-display); }
+.era .mono { color: var(--gold-text); display: block; margin-bottom: 6px; }
+.era .era-note { font-size: 0.86rem; color: var(--fg-2); margin-top: 8px; }
+.roll li { display: grid; grid-template-columns: 8.2em minmax(0, 1fr); gap: 4px 18px; padding: 11px 0; border-top: 1px solid var(--line); }
+.roll li:first-child { border-top: 0; padding-top: 0; }
+.roll .yrs { font: 500 0.78rem/1.7 var(--f-mono); letter-spacing: 0.03em; color: var(--gold-text); }
+.roll h4 { font: 600 1rem/1.35 var(--f-body); }
+.roll p { font-size: 0.9rem; color: var(--fg-2); margin-top: 2px; max-width: 70ch; }
+.roll li.current { background: linear-gradient(90deg, rgba(184,150,78,0.16), transparent 70%); padding-inline: 12px; margin-inline: -12px; border-radius: 2px; }
+.roll li.current .yrs, .roll li.current h4 { color: var(--fg); }
+.roll li.open h4 { color: var(--fg-2); font-style: italic; font-weight: 500; }
+
+/* presidency */
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 32px 48px; }
+.two-col h3 { font: 500 1.35rem/1.2 var(--f-display); margin-bottom: 12px; }
+.plist li { padding: 9px 0; border-top: 1px solid var(--line); font-size: 0.92rem; color: var(--fg-2); display: flex; gap: 12px; justify-content: space-between; }
+.plist li span:first-child { color: var(--fg); }
+.plist .mono { color: var(--gold-text); white-space: nowrap; }
+.oathbox { margin-top: 48px; padding: 24px 26px; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 3px; }
+.oathbox .mono { color: var(--gold-text); }
+.oathbox blockquote { margin-top: 10px; font: italic 400 clamp(1.05rem, 2vw, 1.28rem)/1.55 var(--f-display); max-width: 70ch; }
+.oathbox blockquote p + p { margin-top: 10px; }
+.status { margin-top: 32px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: baseline; padding: 14px 18px; border: 1px solid var(--line); border-radius: 3px; background: var(--card); }
+.status .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--p-ea); align-self: center; }
+.status b { font-weight: 600; }
+.status p { grid-column: 2; font-size: 0.9rem; color: var(--fg-2); }
+
+/* commonwealth */
+.cw { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px 56px; align-items: start; }
+.cw h2 { font: 500 clamp(1.7rem, 3.4vw, 2.4rem)/1.15 var(--f-display); margin: 10px 0 14px; text-wrap: balance; }
+.cw p { color: var(--fg-2); max-width: 58ch; }
+.cw p + p { margin-top: 12px; }
+.cw .mono { color: var(--gold-text); }
+.cw-links { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn.off { opacity: 0.6; cursor: not-allowed; }
+.cw-flag { margin-top: 22px; width: 180px; border: 1px solid var(--line); }
+
+/* news */
+.news li { display: grid; grid-template-columns: 7em minmax(0, 1fr); gap: 4px 24px; padding: 18px 0; border-top: 1px solid var(--line); }
+.news li:last-child { border-bottom: 1px solid var(--line); }
+.news .when { font: 500 0.78rem/1.7 var(--f-mono); letter-spacing: 0.04em; color: var(--gold-text); }
+.news h3 { font: 600 1.05rem/1.35 var(--f-body); }
+.news p { font-size: 0.92rem; color: var(--fg-2); margin-top: 4px; max-width: 70ch; }
+.news .tag { display: inline-block; margin-top: 8px; color: var(--fg-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px; font-size: 0.7rem; }
+
+/* contact */
+.svc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 16px; align-items: start; }
+.svc { background: var(--card); border: 1px solid var(--line); border-top: 2px solid var(--gold); border-radius: 3px; padding: 18px; display: grid; gap: 6px; min-width: 0; }
+.svc h3 { font: 600 1.05rem/1.3 var(--f-body); }
+.svc p { color: var(--fg-2); font-size: 0.92rem; }
+.addr { margin-top: 28px; padding: 18px 20px; border: 1px dashed var(--line); border-radius: 3px; color: var(--fg-2); font-size: 0.95rem; }
+.addr b { color: var(--fg); font-weight: 600; }
+
+/* footer */
+footer { background: var(--band-a); color: var(--band-fg-2); border-top: 2px solid var(--gold); }
+footer .wrap { padding-block: 36px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px 28px; align-items: start; }
+footer .marks { display: flex; gap: 14px; align-items: center; }
+footer .marks img { width: 60px; height: 60px; }
+footer .marks svg { width: 92px; height: auto; color: #CDAE69; }
+footer b { color: var(--band-fg); font: 500 1.2rem/1.2 var(--f-display); display: block; margin-bottom: 8px; }
+footer p { font-size: 0.85rem; max-width: 80ch; }
+footer p + p { margin-top: 8px; }
+footer a { color: var(--band-fg-2); }
+footer .motto { margin-top: 14px; color: #CDAE69; font: italic 400 1rem/1.4 var(--f-display); }
+
+@media (max-width: 760px) {
+  .hero .wrap { grid-template-columns: minmax(0, 1fr); padding-block: 36px; }
+  .hero-art { order: -1; }
+  .hero-art svg { width: min(100%, 260px); }
+  section { padding-block: 48px; }
+  .profile, .cw { grid-template-columns: minmax(0, 1fr); }
+  .pm { grid-template-columns: minmax(0, 1fr); }
+  .era { grid-template-columns: minmax(0, 1fr); }
+  .roll li { grid-template-columns: minmax(0, 1fr); }
+  .news li { grid-template-columns: minmax(0, 1fr); }
+  .fact, .fact + .fact { padding: 12px 0; border-left: 0; border-top: 1px solid var(--line); }
+  .facts-in { display: block; }
+  footer .wrap { grid-template-columns: minmax(0, 1fr); }
+  .cab-count { margin-left: 0; flex-basis: 100%; }
+  .brand svg { width: 60px; }
+  .tl li { grid-template-columns: 4.6em minmax(0, 1fr); }
+  .bracket span { font-size: 0.66rem; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="palace" viewBox="0 0 240 190"><g fill="currentColor">
+    <!-- flagpole and pennant -->
+    <rect x="118.6" y="22" width="2.8" height="58"/>
+    <circle cx="120" cy="18" r="3.4"/>
+    <path d="M121.4 24 L150 22 L144 29 L150 36 L121.4 38 Z"/>
+    <!-- hollow rectangular frame behind the pediment -->
+    <rect x="87" y="70" width="66" height="4"/>
+    <polygon points="87,70 91,70 91,93 87,96"/>
+    <polygon points="153,70 149,70 149,93 153,96"/>
+    <!-- pediment (hollow) with diamond -->
+    <path fill-rule="evenodd" d="M78 104 L120 76 L162 104 Z M94 100 L120 83 L146 100 Z"/>
+    <polygon points="120,89 124.5,93.5 120,98 115.5,93.5"/>
+    <!-- entablature, columns, steps -->
+    <rect x="80" y="106" width="80" height="6"/>
+    <rect x="88" y="114" width="10" height="38"/><rect x="86" y="152" width="14" height="4"/><rect x="106" y="114" width="10" height="38"/><rect x="104" y="152" width="14" height="4"/><rect x="124" y="114" width="10" height="38"/><rect x="122" y="152" width="14" height="4"/><rect x="142" y="114" width="10" height="38"/><rect x="140" y="152" width="14" height="4"/>
+    <rect x="76" y="157" width="88" height="5"/>
+    <rect x="70" y="164" width="100" height="5"/>
+    <!-- wings -->
+    <polygon points="12,104 24,92 80,92 84,104"/>
+    <polygon points="228,104 216,92 160,92 156,104"/>
+    <path fill-rule="evenodd" d="M14 104 H79 V154 H14 Z M21.0 112 h8 v14 h-8 Z M35.3 112 h8 v14 h-8 Z M49.7 112 h8 v14 h-8 Z M64.0 112 h8 v14 h-8 Z M21.0 130 h8 v14 h-8 Z M35.3 130 h8 v14 h-8 Z M49.7 130 h8 v14 h-8 Z M64.0 130 h8 v14 h-8 Z"/>
+    <path fill-rule="evenodd" d="M161 104 H226 V154 H161 Z M211.0 112 h8 v14 h-8 Z M196.7 112 h8 v14 h-8 Z M182.3 112 h8 v14 h-8 Z M168.0 112 h8 v14 h-8 Z M211.0 130 h8 v14 h-8 Z M196.7 130 h8 v14 h-8 Z M182.3 130 h8 v14 h-8 Z M168.0 130 h8 v14 h-8 Z"/>
+    <rect x="12" y="156" width="68" height="6"/>
+    <rect x="160" y="156" width="68" height="6"/>
+    <!-- ground -->
+    <rect x="8" y="172" width="224" height="3"/>
+  </g></symbol></svg>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="flagband" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="topbar">
+  <div class="wrap">
+    <span class="who"><img src="data:image/jpeg;base64,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" alt="Flag of Latrevia" width="24" height="13"><span>An official website of the Federal Republic of Latrevia</span></span>
+    <span class="right">
+      <a href="latrevia.html">Government portal</a>
+      <time class="js-date" id="today">7 Deka 166 AAX</time>
+    </span>
+  </div>
+</div>
+<header class="masthead">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 240 190" role="img" aria-label="The Executive Palace"><use href="#palace"/></svg>
+      <span><b>Office of the President</b><span>Federal Republic of Latrevia</span></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#president">The President</a>
+      <a href="#cabinet">Cabinet</a>
+      <a href="#predecessors">Predecessors</a>
+      <a href="#presidency">The Presidency</a>
+      <a href="#commonwealth">Commonwealth</a>
+      <a href="#news">News</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <span id="themeLabel">Light mode</span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+<a id="top"></a>
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow mono">Third Republic · <span class="js-date">7 Deka 166 AAX</span></p>
+      <h1>Office of the President</h1>
+      <p class="lead">The President is head of state and commander-in-chief of the Federal Republic, and by virtue of the office, President of the Commonwealth of Latrevia and Solaria. Zarpaii Xarpeius has held it since the first presidential election of the Third Republic in 164 AAX.</p>
+      <div class="quick">
+        <a class="btn" href="#president">Meet the President</a>
+        <a class="btn ghost" href="#cabinet">The Cabinet</a>
+        <a class="btn ghost" href="#predecessors">Past Presidents</a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <svg viewBox="0 0 240 190" role="img" aria-label="The Executive Palace, Xareionople"><use href="#palace"/></svg>
+      <span class="mono">The Executive Palace, Xareionople</span>
+    </div>
+  </div>
+</div>
+<div class="facts-band">
+  <div class="wrap">
+    <dl class="facts-in">
+      <div class="fact"><dt class="mono">Seat</dt><dd>Executive Palace, Xareionople</dd></div>
+      <div class="fact"><dt class="mono">Current term</dt><dd>First of two, ends 169 AAX</dd></div>
+      <div class="fact"><dt class="mono">Prime Minister</dt><dd>Astrid de Lune</dd></div>
+      <div class="fact"><dt class="mono">Cabinet</dt><dd>Eighteen ministers</dd></div>
+      <div class="fact"><dt class="mono">National emergency</dt><dd>None declared</dd></div>
+    </dl>
+  </div>
+</div>
+
+<section id="president">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono">The President</span>
+      <h2>Zarpaii Xarpeius</h2>
+    </div>
+    <div class="profile">
+      <div class="prose">
+        <p>Zarpaii Xarpeius is the President of the Federal Republic of Latrevia. She was elected in 164 AAX, in a landslide, at the age of 78, in the first presidential election held under the Constitution of the Third Republic.</p>
+        <p>She is the daughter of Xarpeius, the Deliverer, and of King Cassius of Solaria, and the younger sister of Latreus. When her brother renounced the Solarian throne in 102 AAX she became Queen of Solaria at sixteen, and she has reigned in her own right since 107 AAX. She is the only person to have held both crowns at once, an arrangement the Commonwealth Charter permits for this officeholder alone (Art. 31).</p>
+        <p>She trained in law and served as a federal judge until she resigned from the bench in 137 AAX, as the executive under her brother tightened its hold on the Republic. She spent the following years building the coalition that would restore it.</p>
+        <p>On 1 Ixarius 156 AAX she declared the Third Republic Coalition. After the Duaterre Crossing in 159 AAX she chose not to storm Xareionople. She offered amnesty to soldiers who laid down their arms and safe passage to those who wished to leave, and on 12 Ennia 160 AAX the city surrendered without a shot. She then chaired the Interim Council through the Constitutional Convention and the adoption of the Commonwealth Charter.</p>
+        <p>Her government has concentrated on bedding in the Control Commission and the Civil Service Commission, standing up the Commonwealth’s institutions, and the Lancian Recovery Act.</p>
+      </div>
+      <aside class="glance" aria-label="The President at a glance">
+        <h3>At a glance</h3>
+        <dl class="kv">
+          <div><dt class="mono">Born</dt><dd>86 AAX, aged 80</dd></div>
+          <div><dt class="mono">Office</dt><dd>President of the Federal Republic, since 164 AAX</dd></div>
+          <div><dt class="mono">Also</dt><dd>President of the Commonwealth, Queen of Solaria</dd></div>
+          <div><dt class="mono">Party</dt><dd>Social Progressive Party, elected on the Third Republic Coalition ticket</dd></div>
+          <div><dt class="mono">Before</dt><dd>Federal judge to 137 AAX. Interim President and chair of the Interim Council, 160–164 AAX</dd></div>
+          <div><dt class="mono">Term limit</dt><dd>Two terms of five years, consecutive or not (Art. 10)</dd></div>
+        </dl>
+      </aside>
+    </div>
+    <div class="career">
+      <h3 class="sub">Career</h3>
+      <ul class="tl">
+        <li><b>86 AAX</b><span><strong>Born</strong> to Xarpeius and Cassius.</span></li>
+        <li><b>102 AAX</b><span><strong>Queen of Solaria</strong> at sixteen, when her brother renounces the throne. A regency continues.</span></li>
+        <li><b>107 AAX</b><span><strong>Full reign</strong> as Queen begins, at twenty-one.</span></li>
+        <li><b>137 AAX</b><span><strong>Resigns her judgeship</strong>.</span></li>
+        <li><b>1 Ixarius 156</b><span><strong>Declares the Third Republic Coalition</strong>.</span></li>
+        <li><b>159 AAX</b><span><strong>Duaterre Crossing.</strong> The imperial line breaks.</span></li>
+        <li><b>12 Ennia 160</b><span><strong>Xareionople surrenders</strong> under amnesty, without a shot.</span></li>
+        <li><b>160–164 AAX</b><span><strong>Chairs the Interim Council</strong> as Interim President.</span></li>
+        <li><b>1 Ixarius 162</b><span><strong>Constitution and Charter adopted</strong> at the Dome of the Commonwealth.</span></li>
+        <li class="now"><b>164 AAX</b><span><strong>Elected President.</strong> The first Cabinet is confirmed by the House.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="cabinet" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono">Prime Minister and Cabinet · Art. 11–12</span>
+      <h2>Who governs day to day</h2>
+      <p>The President appoints the Prime Minister from the leader of the majority coalition in the House. Ministers are appointed on the Prime Minister’s advice and confirmed by the House. Members of the Assembly give up their seats on appointment (Art. 13).</p>
+    </div>
+
+    <div class="pm" data-p="cdp">
+      <div class="mono-box" aria-hidden="true">AL</div>
+      <div>
+        <span class="mono">Prime Minister · Head of government</span>
+        <h3>Astrid de Lune</h3>
+        <span class="pty"><i></i>Centre Democratic Party, leader of the Third Republic Coalition</span>
+        <p style="margin-top:10px">Leads the Cabinet, coordinates the federal ministries and sets the government’s legislative programme. She answers questions in the House at least once a fortnight, and can be removed only by a constructive vote of no confidence that names her successor (Art. 11).</p>
+      </div>
+    </div>
+
+    <div class="cab-bar" id="cabChips" role="group" aria-label="Filter ministers by party"></div>
+    <div class="cab-grid" id="cabGrid"></div>
+
+    <div class="house">
+      <h3 class="sub">The House and the governing coalition</h3>
+      <p>The Third Republic Coalition is the wartime alliance carried into government: the Centre Democratic Party, the Social Progressive Party, the Labour and Land Party and the Eastern Alliance. The United Conservatives lead the opposition. Twenty percent of House seats are held by sectoral representatives, most of whom vote with the government.</p>
+      <div class="bar-wrap">
+        <div class="bracket"><span class="mono">Governing coalition · about 55%</span></div>
+        <div class="bar" role="img" aria-label="Approximate House seat shares: Centre Democratic Party 24 percent, Social Progressive Party 15, Labour and Land Party 11, Eastern Alliance 5, sectoral lists 20, regional and independent blocs 8, United Conservatives 17.">
+          <i data-p="cdp" style="width:24%"></i><i data-p="spp" style="width:15%"></i><i data-p="llp" style="width:11%"></i><i data-p="ea" style="width:5%"></i><i data-p="sec" style="width:20%"></i><i data-p="reg" style="width:8%"></i><i data-p="uc" style="width:17%"></i>
+        </div>
+      </div>
+      <ul class="legend">
+        <li data-p="cdp"><i></i><span>Centre Democratic Party</span><span class="mono">24%</span></li>
+        <li data-p="spp"><i></i><span>Social Progressive Party</span><span class="mono">15%</span></li>
+        <li data-p="llp"><i></i><span>Labour and Land Party</span><span class="mono">11%</span></li>
+        <li data-p="ea"><i></i><span>Eastern Alliance</span><span class="mono">5%</span></li>
+        <li data-p="sec"><i></i><span>Sectoral lists (Art. 17)</span><span class="mono">20%</span></li>
+        <li data-p="reg"><i></i><span>Regional and independent blocs</span><span class="mono">8%</span></li>
+        <li data-p="uc"><i></i><span>United Conservatives</span><span class="mono">17%</span></li>
+      </ul>
+      <p class="note">Approximate shares of House seats after the 164 AAX election. The next House election is in 168 AAX.</p>
+    </div>
+  </div>
+</section>
+
+<section id="predecessors">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono">Roll of Presidents</span>
+      <h2>Those who held the office before</h2>
+      <p>The Presidency has changed form four times: in the Federation, in exile, under the Second Republic and under the Third. Years before 0 AAX are counted in PAX, counting down to the day of the VOS assassination.</p>
+    </div>
+
+    <div class="era">
+      <div><span class="mono">157–1 PAX</span><h3>The Latrevian Federation</h3><p class="era-note">Founded by the Act of Union, with Jumongrad as its capital.</p></div>
+      <ul class="roll">
+        <li><span class="yrs">155–140 PAX</span><div><h4>Hadrianus IV, “The Founder”</h4><p>First President of the Federation, elected at 45. Integrated Lancia and passed the Sedition Act of 145.</p></div></li>
+        <li><span class="yrs">140–128 PAX</span><div><h4>John R. Barrett</h4><p>Survived an assassination attempt in 140. Passed the Federation Act and the Land Reform Act.</p></div></li>
+        <li><span class="yrs">128–120 PAX</span><div><h4>Murray R. Barrett</h4><p>Granted statehood to Baybay and formed the Northern Commonwealth and the Kosmos Customs Union.</p></div></li>
+        <li><span class="yrs">120–112 PAX</span><div><h4>Gabriel Leorun I</h4><p>Held the Federation together through the Matthias Secession by the Unity Acts and the Great Compromise.</p></div></li>
+        <li class="open"><span class="yrs">112–14 PAX</span><div><h4>The Long Interregnum</h4><p>A century of caretaker presidents. Term limits were lifted during this era, allowing indefinite re-election.</p></div></li>
+        <li><span class="yrs">20–14 PAX</span><div><h4>David Granitseyevich, “The Pacifier”</h4><p>The last reformer of the Interregnum. Resigned in 14 PAX rather than sit as a powerless figurehead. His proposals became the blueprint for the reforms of 3–2 PAX.</p></div></li>
+        <li><span class="yrs">14–3 PAX</span><div><h4>Gabriel Leorun II</h4><p>Presided over the outbreak of the Solaria War. Defeated at the polls in 3 PAX.</p></div></li>
+        <li><span class="yrs">3 PAX–1 AAX</span><div><h4>Xarvaii, later Xarpeius</h4><p>Elected at 29. Introduced the Federal Republic and its proportional system, and won the Solaria War. Wounded on VOS Day, 31 Dodeka 1 PAX, and presumed dead.</p></div></li>
+      </ul>
+    </div>
+
+    <div class="era">
+      <div><span class="mono">1–58 AAX</span><h3>The Exile and the Reconquest</h3><p class="era-note">The government governed from Emerca, then from the reconquered capital.</p></div>
+      <ul class="roll">
+        <li><span class="yrs">1–5 AAX</span><div><h4>Zavryei Vernalius, Acting President</h4><p>Led about forty ships and 6,700 survivors to Emerca and held the Republic together until his brother’s return.</p></div></li>
+        <li><span class="yrs">5–58 AAX</span><div><h4>Xarpeius, “The Deliverer”</h4><p>Returned to Emerca on 15 Caspius 5 AAX and led the exile government as President-Consul under the Emerca Charter. Led the Reconquest of 48–55 AAX and the Second Republic’s proclamation.</p></div></li>
+      </ul>
+    </div>
+
+    <div class="era">
+      <div><span class="mono">58–141 AAX</span><h3>The Second Republic</h3><p class="era-note">The 58 AAX Constitution made the Presidency ceremonial. The Xarpeian Reforms of 108 AAX made it an executive office.</p></div>
+      <ul class="roll">
+        <li><span class="yrs">58–108 AAX</span><div><h4>Xarpeius, President</h4><p>Re-elected by the Assembly at each seven-year term, and died in office in 108 AAX at 139. His ante-mortem decree established direct presidential elections and barred his descendants from the office for twelve years.</p></div></li>
+        <li class="open"><span class="yrs">108–126 AAX</span><div><h4>The Transitional Period</h4><p>Presidents of the transitional years. Names to be added to the roll.</p></div></li>
+        <li><span class="yrs">126–141 AAX</span><div><h4>Latreus Xarpeius</h4><p>Elected in 126 AAX at 42, after eighteen years barred by his father’s decree. Served three terms and proclaimed the Imperial Republic on 1 Ennia 141 AAX.</p></div></li>
+      </ul>
+    </div>
+
+    <div class="era">
+      <div><span class="mono">141–160 AAX</span><h3>The Imperial Republic and the Civil War</h3><p class="era-note">Listed for the record. See the Declaration of Grievances, Appendix III of the Constitution.</p></div>
+      <ul class="roll">
+        <li><span class="yrs">141–155 AAX</span><div><h4>Latreus Xarpeius, head of the Imperial Republic</h4><p>Dissolved the legislature and ruled by decree. Died on 15 Dodeka 155 AAX.</p></div></li>
+        <li class="open"><span class="yrs">155–160 AAX</span><div><h4>No recognised head of state</h4><p>Imperial loyalists under the generals of Xareionople, and the Third Republic Coalition, contested the country until the surrender of the city.</p></div></li>
+      </ul>
+    </div>
+
+    <div class="era">
+      <div><span class="mono">160 AAX onward</span><h3>The Third Republic</h3><p class="era-note">Five-year terms, two at most, with direct election.</p></div>
+      <ul class="roll">
+        <li><span class="yrs">160–164 AAX</span><div><h4>Zarpaii Xarpeius, Interim President</h4><p>Chaired the Interim Council, which drafted the Constitution and the Commonwealth Charter.</p></div></li>
+        <li class="current"><span class="yrs">164 AAX–</span><div><h4>Zarpaii Xarpeius, President</h4><p>First President elected under the Third Republic Constitution. In her first term, ending in 169 AAX.</p></div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="presidency" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono">Article 10</span>
+      <h2>What the President can and cannot do</h2>
+      <p>The Presidency was redesigned after the Second Republic, when too much power sat in one office and too few checks sat around it.</p>
+    </div>
+    <div class="two-col">
+      <div>
+        <h3>Powers</h3>
+        <ul class="plist">
+          <li><span>Represents the Federation internationally</span><span class="mono">Art. 10</span></li>
+          <li><span>Signs or returns bills within fifteen days. A veto falls to two thirds of both chambers</span><span class="mono">Art. 10, 15</span></li>
+          <li><span>Appoints the Prime Minister from the majority coalition</span><span class="mono">Art. 10, 11</span></li>
+          <li><span>Appoints and dismisses ministers on the Prime Minister’s advice, subject to House confirmation</span><span class="mono">Art. 10, 12</span></li>
+          <li><span>Commander-in-chief of the armed forces</span><span class="mono">Art. 10</span></li>
+          <li><span>May declare a national emergency, but only within Title V</span><span class="mono">Art. 31</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Limits</h3>
+        <ul class="plist">
+          <li><span>Two terms of five years in total, consecutive or not</span><span class="mono">Art. 10, 54</span></li>
+          <li><span>Elected directly, in two rounds</span><span class="mono">Art. 10, 54</span></li>
+          <li><span>May not dissolve the Assembly, except after a failed constructive vote of no confidence and 30 days without a new Prime Minister</span><span class="mono">Art. 10</span></li>
+          <li><span>May be investigated by the Control Commission</span><span class="mono">Art. 26</span></li>
+          <li><span>Impeached by two thirds of the House, removed by two thirds of the Senate under the Chief Justice</span><span class="mono">Art. 26</span></li>
+          <li><span>No relative within the second degree may follow into the same office</span><span class="mono">Art. 54</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="status">
+      <i class="dot" aria-hidden="true"></i>
+      <span><b>No national emergency is in force.</b></span>
+      <p>An emergency may be declared only for invasion or war, a national disaster or epidemic, or a state’s breakdown of constitutional order. It goes to the Assembly within 24 hours and lapses after 30 days unless renewed (Art. 31).</p>
+    </div>
+    <div class="oathbox">
+      <span class="mono">Presidential oath · Appendix I</span>
+      <blockquote>
+        <p>I, Zarpaii Xarpeius, having been elected President of the Federal Republic of Latrevia, do solemnly swear before the People of Latrevia and before history:</p>
+        <p>That I will faithfully execute the office of President; that I will to the best of my ability preserve, protect, and defend the Constitution of the Third Republic; that I will never use the power of this office to subvert the democratic order, to silence dissent, or to serve any master other than the People and the law; that I remember the Theocracy and will never be its servant; that I remember the Empire and will never be its heir.</p>
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<section id="commonwealth">
+  <div class="wrap cw">
+    <div>
+      <span class="mono">Commonwealth Charter · Art. 10</span>
+      <h2>President of the Commonwealth by virtue of office</h2>
+      <p>The President of Latrevia is the President of the Commonwealth of Latrevia and Solaria. There is no separate Commonwealth presidential election, and the Commonwealth term is the same five years as the Latrevian one.</p>
+      <p>In that capacity the President represents the Commonwealth in diplomacy, signs Commonwealth laws with the power to return them, commands the Commonwealth Defence Force, ratifies treaties the Congress has approved, and proclaims Commonwealth emergencies. Those acts answer to the Commonwealth Congress and the Commonwealth Constitutional Court, not only to Latrevian review.</p>
+      <p>The Office of the Commonwealth President sits at this Palace in Xareionople. The Commonwealth Congress and the Prime Minister sit at the Dome of the Commonwealth in Latreionople.</p>
+      <div class="cw-links">
+        <span class="btn ghost off" role="link" aria-disabled="true">Commonwealth portal, coming soon</span>
+        <a class="btn ghost" href="latrevia.html">Latrevia government portal</a>
+      </div>
+    </div>
+    <div>
+      <ul class="plist">
+        <li><span>Commonwealth Prime Minister</span><span class="mono">Alternates between entities</span></li>
+        <li><span>Commonwealth Minister of Defence</span><span class="mono">General Cassian Varo</span></li>
+        <li><span>Council of Ministers</span><span class="mono">At least ⅓ from each entity</span></li>
+        <li><span>Defence Force</span><span class="mono">One force, one command</span></li>
+        <li><span>Foreign policy</span><span class="mono">Delegated to the Commonwealth</span></li>
+        <li><span>Currency</span><span class="mono">The Latrum</span></li>
+        <li><span>The Queen of Solaria</span><span class="mono">Personal exception, Art. 31</span></li>
+      </ul>
+      <p class="note">The Commonwealth has its own Defence Minister because the Charter unified the armed forces. Latrevia has no Defence or Foreign Minister of its own.</p>
+      <img class="cw-flag" src="data:image/jpeg;base64,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" alt="The flag of Latrevia, also the flag of the Commonwealth" width="180" height="95">
+    </div>
+  </div>
+</section>
+
+<section id="news" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono">From the Office</span>
+      <h2>Announcements, 164–166 AAX</h2>
+      <p>A selection from the first term.</p>
+    </div>
+    <ul class="news">
+      <li><span class="when">164 AAX</span><div><h3>The President takes the oath and the first Cabinet is confirmed</h3><p>The House confirms the Cabinet. The Prime Minister’s most debated choice is Mateo von Matthews as Minister for Reconstruction, confirmed narrowly with the Heliosberg delegation voting against. General Cassian Varo is named Commonwealth Minister of Defence.</p><span class="tag">Cabinet</span></div></li>
+      <li><span class="when">164 AAX</span><div><h3>The first Commonwealth Congress convenes at the Dome</h3><p>The Congress sits in Latreionople for the first time, concurrently with the Third Republic’s first elections.</p><span class="tag">Commonwealth</span></div></li>
+      <li><span class="when">165 AAX</span><div><h3>The President signs the Lancian Recovery Act</h3><p>The Act funds the rebuilding of Lancia and the Gulf of Lancia port after the war.</p><span class="tag">Legislation</span></div></li>
+      <li><span class="when">165 AAX</span><div><h3>The Control Commission publishes its first audit</h3><p>The Commission’s findings are public, as the Constitution requires (Art. 26).</p><span class="tag">Accountability</span></div></li>
+      <li><span class="when">165 AAX</span><div><h3>The Civil Service Commission releases its first examination results</h3><p>Vacancies, schedules and results are all published (Art. 21).</p><span class="tag">Public service</span></div></li>
+      <li><span class="when">166 AAX</span><div><h3>The President meets the governors of the eastern states</h3><p>The governors raise the strain on the Assembly of ten small states in the east, and their wish to be treated as one region. The Minister for the Eastern States attends.</p><span class="tag">States</span></div></li>
+    </ul>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono">Contact the Office</span>
+      <h2>Write to the President</h2>
+      <p>Correspondence is logged and answered by the Office of Correspondence. To report misconduct by a public official, write to the Control Commission.</p>
+    </div>
+    <div class="svc-grid">
+      <article class="svc"><h3>Write to the President</h3><p>Letters from citizens of the Federation and the Commonwealth are logged and answered.</p></article>
+      <article class="svc"><h3>Proclamations and messages</h3><p>Ask for a message of congratulation or a proclamation for a civic anniversary.</p></article>
+      <article class="svc"><h3>Press accreditation</h3><p>Accreditation for the Palace press room, open to every outlet that meets the media regulator’s rules.</p></article>
+      <article class="svc"><h3>Visit the Palace</h3><p>The public rooms and the Palace gardens open by appointment.</p></article>
+    </div>
+    <p class="addr"><b>Office of the President</b>, Executive Palace, Xareionople, Federal Republic of Latrevia.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="marks">
+      <img src="data:image/png;base64,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" alt="Emblem of the Federal Republic of Latrevia" width="60" height="60">
+      <svg viewBox="0 0 240 190" aria-hidden="true"><use href="#palace"/></svg>
+    </div>
+    <div>
+      <b>Office of the President</b>
+      <p>Federal Republic of Latrevia. The President also holds the office of President of the Commonwealth. Latrevian English is the official language, and French, Filipinic and the Slavic dialects are protected heritage languages (Art. 1).</p>
+      <p>Public office is a public trust (Art. 5-B). <a href="latrevia.html">Latrevia government portal</a></p>
+      <p class="motto">Iustitia. Libertas. Aequitas.</p>
+      <p style="margin-top:14px;opacity:.75">A Kosmos worldbuilding page. Dates follow the New Xarpeian Calendar, with the year counted as the Gregorian year minus 1860. Last viewed <span class="js-date">7 Deka 166 AAX</span>.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var MONTHS = ['Ixarius','Zavrius','Caspius','Helius','Nerius','Chiomus','Epta','Exsilius','Ennia','Deka','Endeka','Dodeka'];
+  var now = new Date();
+  var today = now.getDate() + ' ' + MONTHS[now.getMonth()] + ' ' + (now.getFullYear() - 1860) + ' AAX';
+  document.querySelectorAll('.js-date').forEach(function (el) { el.textContent = today; });
+
+  /* theme: dark by default, light on request */
+  var root = document.documentElement, btn = document.getElementById('themeBtn'), lab = document.getElementById('themeLabel');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    var light = t === 'light';
+    btn.setAttribute('aria-pressed', String(light));
+    lab.textContent = light ? 'Dark mode' : 'Light mode';
+  }
+  var stored = null;
+  try { stored = localStorage.getItem('latrevia-theme'); } catch (e) {}
+  applyTheme(stored || root.getAttribute('data-theme') || 'dark');
+  btn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    applyTheme(next);
+    try { localStorage.setItem('latrevia-theme', next); } catch (e) {}
+  });
+
+  /* cabinet */
+  var PARTIES = {
+    cdp: 'Centre Democratic Party',
+    spp: 'Social Progressive Party',
+    llp: 'Labour and Land Party',
+    ea: 'Eastern Alliance',
+    ind: 'Independent'
+  };
+  var SHORT = { all: 'All ministers', cdp: 'CDP', spp: 'SPP', llp: 'LLP', ea: 'Eastern Alliance', ind: 'Independent' };
+  var CABINET = [
+    { n: 'Marjorie “Margie” Etties', r: 'Minister of Health', p: 'spp',
+      f: 'Free preventive, curative and mental health care for every citizen (Art. 5). Sets the federal standards that states deliver against (Art. 27).',
+      b: 'A Social Progressive Party member of the House before her appointment in 164 AAX, she gave up her seat as Art. 13 requires.' },
+    { n: 'Maria Les Dieux', r: 'Minister of Education', p: 'spp',
+      f: 'Free schooling through secondary level, with tertiary study made progressively accessible, within federal curriculum standards (Art. 5, 7, 27).',
+      b: 'A schoolmate of the President. Class president from elementary school to university, valedictorian in education with a specialisation in English, and later President of the University of Xareionople. Under the Imperial Republic she protected students’ right to speak freely.' },
+    { n: 'Keith Halielleos Madrigal', r: 'Minister of Labour', p: 'llp',
+      f: 'The living wage, reviewed at least every five years, and the right to organise, bargain and strike (Art. 5, 38).',
+      b: 'Born to a family of modest means, he started work at fourteen on construction sites while he studied, and taught himself programming. He turned down every post Latreus offered him and accepted the President’s.' },
+    { n: 'Jaime Patrice II', r: 'Minister of Social Security', p: 'llp',
+      f: 'Pensions, disability benefits and unemployment assistance adequate for a dignified life (Art. 5).',
+      b: 'Educated at the University of Latrevia in Ezechiel, where he was class president for two years and graduated valedictorian. He led NGOs in remote areas the capital never reached, and organised unions through the Imperial years.' },
+    { n: 'Lloyd Benedict Solan III', r: 'Minister of Housing', p: 'cdp',
+      f: 'Housing as a right, and active measures to prevent and end homelessness (Art. 5).',
+      b: 'From a family in the construction business, he trained in civil engineering and urban planning and spent his career building homes before entering government. A senior-high classmate of the President.' },
+    { n: 'Beatriz “Bea” Aurelia Santelmo', r: 'Minister of Justice', p: 'ind',
+      f: 'The legal framework behind the courts, public defenders and prisons. Does not direct judges or prosecutions, and sits apart from the Control Commission.',
+      b: 'Studied law at the University of Xareionople and graduated first in her bar class. She stayed on the federal bench through the Imperial years, ruling strictly by the book where she could not rule freely, and smuggled sealed court records out of Xareionople before its fall. She resigned from the bench to serve, as Art. 18 requires.' },
+    { n: 'Ray Angeles Ilpratum', r: 'Minister of the Interior', p: 'ind',
+      f: 'The Federal Police Service and federal cooperation with state forces on policing standards (Art. 30).',
+      b: 'From a family of soldiers, he joined the army at nineteen. A conservative with a firm record against corruption, he opposed the war against Colline and took no part in the disappearances and abuses committed under Latreus. In the Civil War he defected at once and sabotaged imperial logistics.' },
+    { n: 'Clio Johan Taverné', r: 'Minister of Finance', p: 'cdp',
+      f: 'Prepares the federal budget for the House, which must receive it 90 days before the fiscal year begins. A deficit above 3% of GDP needs a two-thirds vote (Art. 16).',
+      b: 'A fiscal conservative and social liberal, treasurer at school and at university. He served as Latreus’s Finance Minister from 126 AAX and resigned in 138 AAX, publicly condemning the concentration of power and the disregard of the Constitution.' },
+    { n: 'Boni De Angelis', r: 'Minister of Commerce and Industry', p: 'cdp',
+      f: 'The social market economy, competition law and merger review (Art. 37, 40).',
+      b: 'A classmate of Latreus and a friend of Mateo von Matthews. He read information technology and was a senior developer at Latreus Telecom. He keeps a low public profile.' },
+    { n: 'Miguel Luisitro IV', r: 'Minister of Agriculture and Agrarian Reform', p: 'llp', x: 'Includes the Fisheries Bureau',
+      f: 'Farming and agrarian reform, the right of landless farmers to the land they till (Art. 39), and fisheries through the Fisheries Bureau.',
+      b: 'The son of a fisherman, farmer and former soldier. He studied information technology and found his calling in agriculture.' },
+    { n: 'David “Dave-fíel” Fiel Rodrigo', r: 'Minister of Transport and Infrastructure', p: 'cdp',
+      f: 'Interstate transport and federal infrastructure (Art. 14), and the joint transport corridors the Commonwealth shares.',
+      b: 'Born to a large family, he studied at the University of Xareionople and worked his way through, living in Baybay. He saw at first hand how transport failed and how corrupt the infrastructure ministry became under Latreus. A classmate of the President.' },
+    { n: 'Aaron Vernalius', r: 'Minister of Energy', p: 'cdp',
+      f: 'The federal energy system, held under the competition limits on critical infrastructure (Art. 40).',
+      b: 'A Christian Democrat within the CDP. He read psychology, then moved into energy, serving as an adviser to Rolan Verestrand, Latreus’s energy chief.' },
+    { n: 'Regina “Gina” Lupus', r: 'Minister of Environment and Natural Resources', p: 'ind',
+      f: 'The right to a clean, healthy environment, intergenerational impact assessments, and the stewardship of natural resources owned by the state (Art. 47).',
+      b: 'Came to public life from a family in broadcasting and left it for conservation. She founded the Latrevian Watershed Trust and is known for confronting mining and logging operators in upland watersheds while working alongside the communities downstream.' },
+    { n: 'Raphaella “Ella” Lowell', r: 'Minister of Culture, Heritage and Languages', p: 'llp',
+      f: 'Protection of the heritage languages (French, Filipinic and the Slavic dialects) and of cultural heritage (Art. 1).',
+      b: 'Studied arts at the Christian College of Latrevia. Her mother worked at the old Culture Commission.' },
+    { n: 'Joaquin Mukhtari', r: 'Minister for Commonwealth Affairs', p: 'ind',
+      f: 'The Federation’s dealings with Commonwealth institutions. Notifies the Assembly within seven days of any Commonwealth ruling that affects citizens’ rights (Art. 49–51).',
+      b: 'A treaty lawyer who advised the Interim Council while the Commonwealth Charter was drafted in 162 AAX.' },
+    { n: 'Mateo von Matthews', r: 'Minister for Reconstruction', p: 'ind', x: 'Time-limited post, due to lapse in 174 AAX',
+      f: 'Rebuilding the regions damaged in the war.',
+      b: 'Chancellor of the Imperial Republic from 141 to 155 AAX. He crossed to the Coalition in 158 AAX and was vetted under the Third Republic’s new institutions. The House confirmed him narrowly in 164 AAX, Heliosberg’s delegation voting against.' },
+    { n: 'Konrad von Altmark', r: 'Minister for the Eastern States', p: 'ea',
+      f: 'The Federation’s relations with the ten eastern states and the administration of the former protectorates.',
+      b: 'Born in the eastern highlands, he spent two decades administering the Far East protectorates and became the eastern governors’ main voice in the annexation talks. He leads the Eastern Alliance and is drafting proposals for a regional settlement.' },
+    { n: 'Allisia Patrique', r: 'Minister of Science and Technology', p: 'llp',
+      f: 'Federal science and technology policy, with a commitment that research serves the people before corporations or politicians.',
+      b: 'Studied at the University of Latrevia in Latreionople. A student leader who protested the abuses of the Latreus government and was arrested twice, he was not deterred.' }
+  ];
+  function initials(name) {
+    var parts = name.replace(/[“”"].*?[“”"]/g, '').trim().split(/\s+/);
+    return (parts[0][0] + parts[parts.length - 1].replace(/\bI+\b/, parts[parts.length - 2] || '')[0]).toUpperCase();
+  }
+  var chips = document.getElementById('cabChips'), cgrid = document.getElementById('cabGrid'), cur = 'all';
+  var countEl = document.createElement('span'); countEl.className = 'cab-count mono';
+  ['all', 'cdp', 'spp', 'llp', 'ea', 'ind'].forEach(function (k) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.dataset.k = k; b.setAttribute('aria-pressed', String(k === 'all'));
+    if (k !== 'all') { b.setAttribute('data-p', k); b.innerHTML = '<i></i>' + SHORT[k]; } else { b.textContent = SHORT[k]; }
+    b.addEventListener('click', function () { cur = k; renderCabinet(); });
+    chips.appendChild(b);
+  });
+  chips.appendChild(countEl);
+  function renderCabinet() {
+    chips.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === cur)); });
+    var list = CABINET.filter(function (m) { return cur === 'all' || m.p === cur; });
+    cgrid.innerHTML = list.map(function (m) {
+      return '<article class="min" data-p="' + m.p + '">' +
+        '<div class="min-top"><div class="mono-box" aria-hidden="true">' + initials(m.n) + '</div><div style="min-width:0"><h3>' + m.n + '</h3><div class="role mono">' + m.r + '</div></div></div>' +
+        '<span class="pty"><i></i>' + PARTIES[m.p] + '</span>' +
+        (m.x ? '<span class="tagline">' + m.x + '</span>' : '') +
+        '<p><b>Portfolio</b>' + m.f + '</p><p><b>Background</b>' + m.b + '</p></article>';
+    }).join('');
+    countEl.textContent = list.length + ' of ' + CABINET.length + ' ministers';
+  }
+  renderCabinet();
+})();
+</script>
