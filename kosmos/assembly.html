@@ -701,7 +701,7 @@ footer .motto { margin-top: 14px; color: #CDAE69; font: italic 400 1rem/1.4 var(
 
 <script>
 (function () {
-  var MONTHS = ['Ixarius','Zavrius','Caspius','Helius','Nerius','Chiomus','Epta','Exsilius','Ennia','Deka','Endeka','Dodeka'];
+  var MONTHS = ['Ixarius','Savrius','Caspius','Helius','Nerius','Kiomus','Epta','Exsilius','Ennia','Deka','Endeka','Dodeka'];
   var now = new Date();
   var today = now.getDate() + ' ' + MONTHS[now.getMonth()] + ' ' + (now.getFullYear() - 1860) + ' AAX';
   document.querySelectorAll('.js-date').forEach(function (el) { el.textContent = today; });
@@ -715,11 +715,13 @@ footer .motto { margin-top: 14px; color: #CDAE69; font: italic 400 1rem/1.4 var(
   }
   var stored = null;
   try { stored = localStorage.getItem('latrevia-theme'); } catch (e) {}
-  applyTheme(stored || root.getAttribute('data-theme') || 'dark');
+  var mq = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
+  applyTheme(stored || (mq && mq.matches ? 'light' : 'dark'));
+  if (mq && mq.addEventListener) mq.addEventListener('change', function (e) { if (!stored) applyTheme(e.matches ? 'light' : 'dark'); });
   btn.addEventListener('click', function () {
     var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     applyTheme(next);
-    try { localStorage.setItem('latrevia-theme', next); } catch (e) {}
+    stored = next; try { localStorage.setItem('latrevia-theme', next); } catch (e) {}
   });
 
   var NAMES = { llp: 'Labour and Land Party', spp: 'Social Progressive Party', cdp: 'Centre Democratic Party', ea: 'Eastern Alliance', sec: 'Sectoral lists', reg: 'Regional and independent blocs', uc: 'United Conservatives' };
