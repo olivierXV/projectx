@@ -173,7 +173,7 @@ html[lang="en"] [lang="fr"], html[lang="fr"] [lang="en"] { display: none !import
 .sen-del h3 { font: 500 1.15rem/1.2 var(--f-display); display: flex; justify-content: space-between; gap: 10px; align-items: baseline; margin-bottom: 10px; }
 .sen-del h3 .mono { color: var(--gold-text); }
 .sdots { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
-.sdot { aspect-ratio: 1; border-radius: 50%; background: var(--c); transition: opacity .15s; }
+.sdot { cursor: pointer; aspect-ratio: 1; border-radius: 50%; background: var(--c); transition: opacity .15s; }
 .groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 16px; align-items: start; }
 .gcard { background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--c); border-radius: 3px; padding: 16px 18px 18px; display: grid; gap: 10px; min-width: 0; }
 .gtop { display: flex; align-items: center; gap: 10px; }
@@ -300,7 +300,7 @@ footer .marks img.emb { width: 60px; height: 60px; }
 
 <div class="strip">
   <div class="wrap">
-    <span class="who"><svg viewBox="0 0 600 300" role="img" aria-label="Flag of the Commonwealth and of Latrevia"><rect width="600" height="300" fill="#2850C4"/><rect width="173" height="41" fill="#19B5F5"/><rect y="41" width="173" height="41" fill="#fff"/><rect y="82" width="173" height="41" fill="#19B5F5"/><rect x="173" width="54" height="300" fill="#0D0F1A"/><rect y="123" width="600" height="54" fill="#0D0F1A"/><rect x="185" width="30" height="300" fill="#fff"/><rect y="135" width="600" height="30" fill="#fff"/></svg><svg class="flag-sol" viewBox="0 0 2000 1058" width="24" height="13" role="img" aria-label="Flag of Solaria"><rect width="2000" height="1058" fill="#284FC4"/><polygon points="1000,130 1557,529 1000,928 443,529" fill="#fff"/></svg><span><span lang="en">An official website of the Commonwealth of Latrevia and Solaria</span><span lang="fr">Site officiel du Commonwealth de Latrévie et de Solarie</span></span></span>
+    <span class="who"><svg viewBox="0 0 2000 1000" role="img" aria-label="Flag of the Commonwealth"><rect width="2000" height="1000" fill="#fff"/><g><rect width="2000" height="1000" fill="#284FC4"/><rect width="661" height="380" fill="#01B4FF"/><rect y="127" width="661" height="126" fill="#fff"/><rect x="661" width="237" height="1000"/><rect y="380" width="2000" height="239"/><rect x="723" width="112" height="1000" fill="#fff"/><rect y="443" width="2000" height="112" fill="#fff"/></g></svg><svg class="flag-sol" viewBox="0 0 2000 1058" width="24" height="13" role="img" aria-label="Flag of Solaria"><rect width="2000" height="1058" fill="#284FC4"/><polygon points="1000,130 1557,529 1000,928 443,529" fill="#fff"/></svg><span><span lang="en">An official website of the Commonwealth of Latrevia and Solaria</span><span lang="fr">Site officiel du Commonwealth de Latrévie et de Solarie</span></span></span>
     <span class="right">
       <a href="commonwealth.html"><span lang="en">Commonwealth portal</span><span lang="fr">Portail du Commonwealth</span></a>
       <a href="assembly.html"><span lang="en">Federal Assembly</span><span lang="fr">Assemblée fédérale</span></a>
@@ -704,6 +704,7 @@ footer .marks img.emb { width: 60px; height: 60px; }
     });
   }
 
+  var SENS = {"lat": {"cu": [["José Ulyanov", "I"], ["Beatriz Almazán", "II"], ["Lorenzo Quisumbing", "III"], ["Corazon Bagtas", "I"], ["Rafael Dimasalang", "II"], ["Teodora Salvatierra", "III"], ["Anselmo Pangilinan", "I"], ["Ramona Tuazon", "II"], ["Isidro Malabanan", "III"], ["Heike Rothbauer", "I"], ["Anton Weidenfels", "II"], ["Greta Sonnenmoor", "III"], ["Matthäus Kellerman", "I"], ["Ulrike Fischbach", "II"], ["Dieter Langenhorst", "III"], ["Rosalind Aldous", "I"]], "pa": [["Marian Deféndre", "II"], ["Gideon Fairbourne", "III"], ["Harriet Coldwell", "I"], ["Nathaniel Pembrook", "II"], ["Eleanor Thackeray", "III"], ["Lionel Gaskell", "I"], ["Philippa Rowntree", "II"], ["Arthur Calloway", "III"], ["Yelena Mirovskaya", "I"]], "cl": [["Achilles Hadrian", "II"], ["Vasily Pereverzev", "III"], ["Tatyana Belogorova", "I"], ["Anatoly Sukharev", "II"], ["Inés Aldecoa", "III"], ["Fernando Belmonte", "I"], ["Soledad Quiroga", "II"], ["Alejandro Montalbán", "III"]], "lg": [["Dietrich Hollenbeck", "I"], ["Reinhold Ostermann", "II"], ["Marguerite Sauveterre", "III"], ["Lucien Aubrac", "I"], ["Clotilde Montferrand", "II"]], "cn": [["Cornelius Ashworth", "III"], ["Benedikt Hohenau", "I"], ["Odalys Ferreira", "II"], ["Gustavo Arbeláez", "III"], ["Pilar Echeverría", "I"], ["Casimir Wojtalski", "II"], ["Henrietta Marlowe", "III"], ["Edwin Darrowby", "I"], ["Lorenza Vittoria", "II"], ["Tobias Ravensworth", "III"], ["Imelda Cruzado", "I"]], "ni": [["Saul Benavidez", "II"]]}, "sol": {"cu": [["Mikhail Davidovich", "I"], ["Ark Adrien", "II"], ["Geneviève Saint-Aubin", "III"], ["Philippe Beaumarchais", "I"], ["Aurore Delacourt", "II"], ["Théophile Lefèvre", "III"], ["Solène Marchetti", "I"], ["Hugues de Montclair", "II"], ["Isabelle Rochefort", "III"], ["Octave Valmont", "I"], ["Margaux Trévillon", "II"], ["Lucien Castellane", "III"], ["Delphine Aubertin", "I"], ["Étienne Montrésor", "II"], ["Séraphine Lacroix", "III"], ["Raoul Fontvieille", "I"]], "pa": [["Colette Dubreuil", "II"], ["Armand Vaudreuil", "III"], ["Ninon Belcastel", "I"], ["Jérôme Pelletier", "II"], ["Anaïs Beauregard", "III"], ["Gaston Lemoyne", "I"], ["Mireille Cassagne", "II"], ["Valentin Roquefeuil", "III"], ["Odette Marcillac", "I"]], "cl": [["Marcel Barracuda", "II"], ["Cyrille Tessier", "III"], ["Bénédicte Laroque", "I"], ["Florian Chantelouve", "II"], ["Adèle Courtenay", "III"], ["Basile Montcalm", "I"], ["Yvonne Grandchamp", "II"]], "lg": [["Léopold Bastide", "III"], ["Clémentine Aragon", "I"], ["Maxime Villeneuve", "II"], ["Sylvie Haute-Rive", "III"], ["Alphonse Verdier", "I"], ["Josette Carmaux", "II"]], "cn": [["Aurélien Duvernay", "III"], ["Bertrand de Vaucluse", "I"], ["Anselme Rivière", "II"], ["Pascaline Duclos", "III"], ["Thibault Maupassant", "I"], ["Rosalie Deschamps", "II"], ["Ignace Boisvert", "III"], ["Nadège Lavigne", "I"], ["Célestin Orsini", "II"], ["Marthe Lecoq", "III"], ["Fabrien Soulier", "I"]], "ni": [["Léonie Tavernier", "II"]]}};
   function renderSenate() {
     var wrap = document.getElementById('senTwo'); wrap.innerHTML = '';
     [['lat', 0], ['sol', 1]].forEach(function (e) {
@@ -714,7 +715,9 @@ footer .marks img.emb { width: 60px; height: 60px; }
       D.groups.forEach(function (g) {
         var n = g.s[e[1]]; parts.push(n + ' ' + nm(g));
         for (var i = 0; i < n; i++) {
-          var d = document.createElement('i'); d.className = 'sdot'; d.setAttribute('data-p', g.k); grid.appendChild(d);
+          var d = document.createElement('i'); d.className = 'sdot'; d.setAttribute('data-p', g.k); var sx = SENS[e[0]][g.k][i];
+          d.title = sx[0] + ' · ' + nm(g) + ' · ' + TXT[L][e[0]] + ' · ' + (L === 'fr' ? 'classe ' : 'Class ') + sx[1]; d.setAttribute('data-who', d.title);
+          d.addEventListener('click', function () { document.getElementById('sDetail').textContent = this.getAttribute('data-who'); }); grid.appendChild(d);
         }
       });
       grid.setAttribute('aria-label', TXT[L].senLabel + TXT[L][e[0]] + ': ' + parts.join(', '));
