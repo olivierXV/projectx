@@ -36,7 +36,7 @@ button.p{background:var(--ink);color:#fff;width:100%;margin-top:6px}
 .fields{position:absolute;left:286px;top:172px;right:36px;display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
 .f label{display:block;font:12.5px system-ui,sans-serif;color:var(--mute);margin-bottom:1px}
 .f div{font-size:24px;line-height:1.15;min-height:28px;border-bottom:1px solid #c5cee2;padding-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.f.w{grid-column:1/3}.f.s div{font-size:30px;font-weight:700}
+.f{min-width:0}.f.w{grid-column:1/3}.f.s div{font-size:30px;font-weight:700}
 .foot,.bf{position:absolute;left:0;right:0;bottom:0;height:54px;background:var(--h);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 36px;font:15px system-ui,sans-serif}
 .bf{background:var(--ink)}.foot em,.bf em{font:17px Georgia,serif}
 .no{font:22px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.05em}
@@ -110,6 +110,8 @@ const F=(l,v,cl="")=>`<div class="f ${cl}"><label>${l}</label><div>${E(v)}</div>
 q("front").innerHTML=`<img class="mark" src="${c.fr?IMG.soc:IMG.lat}" alt=""><div class="head"><div class="sl">${sl}</div><div class="t"><b>${L.top}</b><span>${E(S.sub)}</span><i>${L.kind}</i></div><img class="fl" src="${IMG[c.flag]}" alt=""></div><div class="rule"></div><div class="photo" id="photo">${ph}</div><div class="fields">${F(L.sur,S.sur,"s w")+F(L.giv,S.giv,"w")+F(L.dob,S.dob)+F(L.pob,S.pob)+F(L.is,S.is)+F(L.ex,S.ex)}</div><div class="foot"><span>${L.no}</span><span class="no">${E(S.no)}</span><em>Iustitia. Libertas. Aequitas.</em></div>${S.spec?'<div class="spec"><span>SPECIMEN</span></div>':""}`;
 q("back").style.setProperty("--ink","#14213d");
 q("back").innerHTML=`<div class="bh"><div class="sl" style="background:none"><img src="${IMG.cws}" alt=""></div><div class="t"><b>${L.cw}</b><span>${L.cs}</span></div><img class="fl" src="${IMG.cwf}" alt=""></div><div class="rule g"></div><div class="bb"><p>${L.mv}</p><small>${L.nt}</small></div><div class="sig"><label>${L.sig}</label><div>${E(S.sig)}</div></div><div class="au"><label>${L.by}</label><div>${E(S.auth)}</div></div><div class="bf"><span class="no">${E(S.no)}</span><em>${E(c.nm)}</em></div>${S.spec?'<div class="spec"><span>SPECIMEN</span></div>':""}`}
+function fitText(){document.querySelectorAll(".f div").forEach(d=>{d.style.fontSize="";let s=parseFloat(getComputedStyle(d).fontSize);while(d.scrollWidth>d.clientWidth&&s>13){s-=1;d.style.fontSize=s+"px"}})}
+const _r=render;render=function(){_r();fitText()};
 function sync(){FIELDS.forEach(([k])=>q("f_"+k).value=S[k]);["z","x","y"].forEach(k=>q(k).value=S[k]);q("who").value=S.who}
 q("who").innerHTML=Object.entries(I).map(([k,c])=>`<option value="${k}">${c.nm}</option>`).join("");
 q("fs").innerHTML=FIELDS.map(([k,l,p])=>`<label>${l}<input type="text" id="f_${k}" data-k="${k}" placeholder="${p||""}"></label>`).join("").replace('id="f_no" data-k="no"','id="f_no" data-k="no"');
