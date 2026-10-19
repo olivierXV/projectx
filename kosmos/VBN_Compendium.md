@@ -1,0 +1,284 @@
+# VBN — Compendium
+
+*Everything on file about VBN Corporation and its family of services, for the Kosmos setting (in-world year 166 AAX). Compiled 17 Oct 2026; updated 19 Oct 2026 for the full-day schedules, the VNC Newsroom (newsroom.vnc.html), VBN Entertainment (entertainment.vbn.html) and the rename of vnc.vbn.html to vnc.html.*
+
+> **How to read the tags**
+> - **[CANON]** is in the project documents (Master Chronicle, Geography, the constitutions and rule books, the government docs).
+> - **[DECIDED]** you told me in conversation.
+> - **[INVENTED]** I made it up for the websites. It is not in any document and needs your yes or no.
+> - **[OPEN]** is undecided.
+>
+> Only the Second Republic Constitution names VBN directly. The Third Republic documents never mention VBN, VNC or VRS, but they do set rules that bear on them (see Part 6). Since 18 Oct the Chronicle and Reference settle most of them (section 4.5).
+> **Renames in force:** Hadrianus is **Adrastus** throughout; LTV is **Lumen Television** (not Laterus); LPN is the **Luisara People's Network**, a private VBN subsidiary; VRS is the **VBN Radio Service**.
+
+---
+
+## 1. At a glance
+
+| | |
+|---|---|
+| **Name** | **VBN Corporation** (restored). *Vert Broadcasting Network Inc.* is retired. *Verzosa* is retired and replaced by *Vernalius*. [DECIDED] |
+| **Model** | ABS-CBN: a family-owned private broadcaster that began in radio, grew into the flagship network and later split off its news and regional arms. [DECIDED] |
+| **Origin** | Radio age. Radio was perfected c. 112 PAX [CANON]. The corporate site dates the first transmission c. 105 PAX [INVENTED]. |
+| **Owner** | The Vernalius family. Adrastus V ran it as a private citizen (d. 13 PAX) and it passed to Olifhar Vernalius's branch after Xarpaii's political career made family ownership untenable. [CANON] |
+| **HQ** | VBN Compound, in Xareionople (formerly Jumongrad). [CANON, Geography] |
+| **Television** | VBN 1 (corporate flagship), VNC 2 (the Art. 43 public service, in a statutory trust), V3 / channel 3 (entertainment and youth, modelled on Studio 23). [DECIDED] |
+| **Radio** | Radio 1 (new, VBN alone), Kiss FM (VBN station, sister of V3), VRS (in the VNC Trust). [DECIDED] |
+| **Studio** | VBN Productions. No site of its own. [DECIDED] |
+| **Wings and partners** | LPN (private subsidiary in Luisara), NPBC (partner in Nicolatia), LTV (Lumen Television, the historical disguise licence). [DECIDED] |
+| **Language of the sites** | Primarily English. [DECIDED] |
+
+---
+
+## 2. What the project documents say (canon)
+
+### 2.1 Founding and ownership
+
+- Adrastus V (d. 13 PAX) "ran VBN Corporation as a private citizen; married Lune of Leyan. Died suddenly, leaving his son the Lord Mayor candidacy of Jumongrad. VBN later passes to Olifhar's branch as a consequence of Xarpaii's political career." (Chronicle, Bloodlines)
+- Olifhar Vernalius is the uncle of Xarpeius and Zavryei: "Inherited VBN Corporation from Adrastus V's line once Xarpaii's political career made continued family ownership untenable. Descendants remain in media, politically diluted and irrelevant to the throne."
+- 13–3 PAX: Xarpaii, as Lord Mayor of Jumongrad, was "rebuilding the Vernalius political network, allying with Albert von Matthews, and building influence through VBN."
+
+### 2.2 The audio and television timeline (Chronicle, Technology)
+
+- 150 PAX: wax cylinder. 140–128 PAX: Barrett-era disc. Radio perfected near c. 112 PAX, at the start of the Long Interregnum.
+- A compact, permanently stable cassette-form medium appears in the 90s AAX.
+- Television was invented in secret around VOS Day and "quite possibly among the very first things ever broadcast was the VOS Day parade, now lost or never properly recorded." It was all but abandoned during the exile's war economy, when radio stayed dominant. It was rebuilt as a mass medium c. 52–58 AAX, with colour television, cinema and professional magnetic tape following c. 58–75 AAX. Digital technology is only an academic curiosity.
+
+### 2.3 VBN Pontes
+
+- A first, Interregnum-era radio attempt to bind the states together through shared, trusted news "collapsed for lack of funding and a disengaged public."
+- Revived c. 58–75 AAX as "an institutional (not personally-led) initiative to bind Latrevia's linguistically scattered states (Filipinic Baybay, Leyan and Prado; the Germanic far-east territories; Slavic-bordering Ezechiel) together through shared, trusted news." The vision succeeded once television expanded.
+- The Second Republic Constitution (Art. 27) calls VBN "the Second Republic's principal broadcast institution and carrier of the VBN Pontes initiative."
+
+### 2.4 VBN in the crises
+
+| Date | Event | Source |
+|---|---|---|
+| 31 Dodeka, 1 PAX | "Within three hours, the VBN transmitter was broadcasting something other than news." The Theocracy then hanged people "from our own VBN transmitter" (Latrevian Constitution, Appendix III). | Chronicle set piece; Constitution |
+| 1–55 AAX | Exile. Radio dominant. | Chronicle |
+| 133–136 AAX | "VBN's editorial independence pressured; emergency-powers law passed; Civil Service Oversight Committee purged, then suspended." | Chronicle |
+| 141–155 AAX | Imperial Republic. "*Vivat Imperator, vivat in aeternum*", the hollow, compelled propaganda "VBN ran under Mateo's control." | Chronicle, Voices & Phrases |
+| 15 Dodeka, 155 AAX | The **Swan Signal**: stations loop a ballet for days after Latreus's death, "a silent admission to the regime's inner circle that control has been lost." | Chronicle |
+
+The Second Republic Constitution's retrospective note says the missing editorial firewall in Art. 27 "is the direct constitutional root of what happened to VBN under Latreus." The pressure of 133–136 AAX "was not a violation of this Constitution. It was something this Constitution's own Title VII left entirely unprotected." VBN's transmitters were broadcasting compelled propaganda by the Imperial Republic.
+
+### 2.5 Places (Geography, Part Five and Seven)
+
+| Place | Coordinates (x, z) | Note |
+|---|---|---|
+| VBN Compound | within Xareionople | "The VBN Compound sits within Xareionople's own territory." |
+| VBN Lancia Hill | (-216, 585) | Near the Lancia Government Center and the Exile Govt. Center. |
+| VBN Ezechiel Transmitter | (1009, -1727) | Latrevian Ezechiel, Northern Commonwealth. |
+| VBN Nikolatsk | (-761, -1530) | In Nicolatia, south-west, south of Novonikolatsk. |
+| VBN Nikolatsk Transmitter | (-741, -1482) | |
+
+Also relevant: Nicolatia "generates little news because the Committee keeps it that way" (Nicolatia Government, Part II).
+
+### 2.6 Calendar, used on the sites
+
+Months: Ixarius, Savrius, Caspius, Helius, Nerius, Kiomus, Epta, Exsilius, Ennia, Deka, Endeka, Dodeka. Days (English): Sunday, Monday, Stasday, Wawsday, Winsday, Fyrday, Erday. Year AAX = Gregorian year minus 1860 on the sites.
+
+### 2.7 Regnum (Chronicle, "Regnum — Confirmed a Separate Planet")
+
+- A separate planet sharing Kosmos's orbit on the opposite side of the sun, **reached only by portal, not by ship**. The alternative of putting it on Kosmos's landmass was considered and rejected because Valerius's exile "depends on genuine severance."
+- **Triumterra** is the name of Regnum's state: "Triumterra's leadership," "First Marshal of Triumterra," "Triumterra's diplomat to Latrevia." The Kassans of Triumterra are Regnum's line. Polemistis III is First Marshal.
+- Your addition to the lore [DECIDED]: in the older lore, floating end-ships could cross between worlds, but slowly, so portals were essential. A satellite-ring relay is a stretch, because the two worlds sit on opposite sides of the sun.
+
+### 2.8 Other canon touching VBN's neighbours
+
+- **Luisara** is Spanish-speaking and outside the Commonwealth, with its own peso. It has a Dongmyeong region with Korean co-official. It held Latrevia's central coast 1–49 AAX. Its governance is loose and clientelist, with no independent watchdog.
+- **Nicolatia** is a tsarist monarchy under the Fundamental Laws. Native tongue is Russian. Capital Nikolatsk (Николатск). The Committee for Tsarist Security watches the elite.
+- **Paradeisos** is an island that governed itself during the civil war. Alexei Nuelikuz's Latrevian Soviet Republic of Paradeisos negotiated and was admitted as a state after 160 AAX. Senator Nuelikuz is "enthusiastic, verging on obsessive, about military aviation."
+- **Solaria** speaks French (Solarie).
+
+---
+
+## 3. Your decisions, in the order you gave them
+
+**Naming and lore**
+1. Restore **VBN Corporation**. Retire *Vert Broadcasting Network Inc.* "Verzosa" is replaced by **Vernalius**. The company was "modeled after ABS-CBN after all."
+2. The headline stories on the sites are in-world and need not appear in the Chronicle.
+3. VBN's founding is "much earlier" than the old posters imply. The old posters (50-year, Verzosa, Paradise-Colony) "don't make sense." Paradeisos is within the Kosmos and "started as a colony." **Paradise Colony** is an older lore name for Paradeisos.
+4. Regnum is a separate realm, as in the Chronicle.
+5. Language is primarily English. You were unsure whether there should be a Commonwealth-linked site.
+
+**Channels and structure**
+6. **VBN 1** is a corporate channel. **VNC 2** is the only service held in trust, like the BBC's news arm. **V3** is channel 3, entertainment and youth, "like the then Studio 23."
+7. **VRS** sits in the VNC Trust. **Kiss FM** is a VBN station and sister to V3, with overlapping programming. A **new Radio 1** is for VBN alone.
+8. **LTV** was Lumen Television, "kinda used to evade Latreus's shutter on VBN."
+9. **LPN** (Luisara People's Network) is a private VBN subsidiary under Luisaran law, not a public broadcaster [DECIDED 18 Oct, O8]. It could link to the Luisara site.
+10. **NPBC** (Nicolates Public Broadcasting Channel) is where VBN airs some shows. It is for the later Nicolatia website.
+
+**Site scope**
+11. Build the **VBN corporate site** first. It links to the main VBN site, to VNC (which also has VRS), and to RVBN (VRS, Radio 1 and Kiss FM). There is **no Radio 1 site and no Productions site**. Linked sites that do not exist yet show "opening soon."
+12. Then build the **main VBN website** (done). The corporate site is a separate thing.
+
+**Logos**
+13. Wordmark = the first image, the current logo. The old star logo was retired long ago, but may return as your **pixel-art star**. The "third image" (the diamond) has existed as long as the wordmark. The 1 is the channel-1 logo.
+14. Music: drop its logo and use the wordmark plus the pixel star. *Later replaced*: use your **new Kiss logo** instead.
+15. **LPN**: recreate it to match the white version, and fix its symmetry.
+16. **VBN Productions**: the logo is fine. Keep the askew wording, but make it high quality.
+17. **V3**: follow your rough sketch (V's right arm flowing into the 3), but use the **thicker V from the wordmark**. The old check-mark V was supplied as a reference, now shown as the fourth of four marks.
+18. No white boxes behind logos (LTV and others): vectors must be transparent.
+
+**Regnum and Colline**
+19. Regnum can be reached by portal, or slowly by end-ship. A satellite relay is a stretch. Open: what are **VBN Colline** and **VRS Triumterra**? (See Part 7.)
+
+**Working rules**
+- 19 Oct: the Corporation's radio service "VBN Radio" is renamed **Radio 1** and uses the VBN 1 mark (with a small "Radio" caption). **RVBN** stays as the name of the site that holds all three stations (Radio 1, Kiss FM, VRS). VRS keeps its full name, the VBN Radio Service.
+- Do not save .md files unless told to. (This file was made at your request and is not saved to the project.)
+
+---
+
+## 4. The VBN family, as built
+
+### 4.1 Organisation
+
+```
+VBN Corporation (private, Vernalius family, commercial, advertising-funded)
+├─ VBN 1                      television flagship
+├─ V3                         television, entertainment and youth
+├─ Radio 1                  new in 166 AAX, VBN alone
+├─ Kiss FM                    radio, V3's sister, VBN station
+├─ VBN Productions            studio; no site
+├─ LPN                        private subsidiary, Luisaran law
+└─ carriage and programme agreements
+     ├─ NPBC                  Nicolatia, independent, airs selected VBN shows
+     └─ the VNC Trust         statutory trust (Art. 43), federally funded
+          ├─ VNC (channel 2)  news; created 164 AAX from the old state-chartered newsroom
+          └─ VRS              VBN Radio Service
+```
+
+The Trust's three promises, as written on the corporate site [INVENTED]: no appointments (the Corporation names no trustee, editor or director), guaranteed carriage on VBN transmitters at VBN's cost, and an open record (the Trust's annual independence report is published unedited on the corporate site).
+
+### 4.2 Channels
+
+| Service | Role | Held by | Colour in the sites |
+|---|---|---|---|
+| VBN 1 | Flagship: serials, live variety, sport, big evenings. Carries the VNC Evening Bulletin at 19:00 daily by agreement. | Corporation | brand blue |
+| VNC 2 | News. Public service under Art. 43, created 164 AAX; descends from VBN Pontes. | VNC Trust (statutory) | green `#28db02` and blue `#2fa5f8` |
+| V3 | Music, studio shows, campus drama, games. | Corporation | pink |
+| Radio 1 | Talk, music, sport, VBN 1 simulcast. | Corporation | |
+| Kiss FM | Youth music and chat. | Corporation | |
+| VRS | News, talk, regional languages. | VNC Trust | cyan-to-blue gradient |
+
+### 4.3 Realm coverage [INVENTED unless noted]
+
+| Realm | Coverage |
+|---|---|
+| Latrevia | Channel 1 from the Compound; transmitters at Lancia Hill and Ezechiel [CANON waypoints]. |
+| Solaria | "VBN Solaria", a regional station with French-language programming. |
+| Paradeisos | "VBN Paradeisos", an island station. |
+| Luisara | LPN: Spanish, Luisaran law, regional programming for each region. |
+| Nicolatia | Bureau and transmitter at VBN Nikolatsk [CANON waypoint]; selected shows on NPBC under a carriage agreement. |
+| Regnum | Not on air in 166. Before 141 VBN ran VBN Colline (television) and VRS Triumterra (VBN Radio Service); Triumterra seized both in 138–141. Everything crosses by portal; end-ships only at the two windows a year. [Revised 18 Oct] |
+
+### 4.4 Marks (logos)
+
+| Mark | Use |
+|---|---|
+| Wordmark | Name and principal mark. Unchanged. |
+| Signal diamond | A diamond and three pairs of chevrons. Closes broadcasts. As old as the wordmark. |
+| The 1 | VBN 1 logo (a 1 with three chevrons). |
+| Pixel star | Oldest device, retired and brought back in pixel art. |
+| Check mark (old V) | Retired as main logo. Survives inside the Productions mark. |
+| V3 | Thick wordmark V flowing into a 3. |
+| VNC | Fixed green and blue. |
+| VRS | Gradient. |
+| Kiss FM | Your new logo. |
+| LPN | Coloured: yellow `#FFB400`, orange `#D9571A`, red `#BC1116`; also a mono version. |
+| LTV | Used in the history. |
+| NPBC | Partner logo. |
+| VBN Productions | Brown `#8c3211` with white; the projector mark with its askew wording. |
+
+---
+
+## 5. Material invented for the sites (needs your yes or no)
+
+**Corporate site (`corporate.vbn.html`)**
+- Corporate officers: Octavia Vernalius (Chair), Marcus Halloran (Group CEO), Imogen Fairweather (President, VBN 1 and Radio 1), Tomas Ardenne (President, V3 and Kiss FM), Esperanza Dalmau (President, Productions), Rhys Calloway (General Counsel).
+- First transmission c. 105 PAX; timeline entries for the first attempt at shared news, "Lumen Television" (c. 136 AAX), "A charter, and no firewall" (58 AAX), Kiss FM by 131 AAX, "Colline and Triumterra lost" (138–141) and "The newsroom goes into trust" (164 AAX).
+- VBN 1 carries the VNC Evening Bulletin by agreement since VNC's founding (164 AAX).
+- The three Trust promises, now the terms of the founding statute (section 4.5).
+- Regional offices at Lancia Hill, Ezechiel, Nikolatsk, Solaria and Paradeisos; VBN Solaria and VBN Paradeisos stations; a Nikolatsk licence with no Nicolatian newsroom.
+- Newsroom announcements dated Ennia–Deka 166 AAX (NPBC carriage renewal through 169 AAX, V3 and Kiss FM music week, Radio 1 signing on from Lancia Hill, the Trust's independence report).
+- A paragraph on Art. 42 and the Federal Media Authority.
+
+**Main site (`vbn.html`)**
+- Programmes: *Hearth & Harbour*, *The Long Table*, *The Lantern Road*, *Good Morning Kosmos*, *The Salt Road*, *Harbour Quiz*, *Children's Hour*, *Erday Night*, *Sign-off Concert*, *Matinee*, *Kosmos Cup Tonight*, *Fyrday Lights*.
+- The **Kosmos Cup**. The main site still shows its original six clubs; the Newsroom now runs the league as twelve clubs (see below), which supersedes that list.
+- "Behind the screen" items, LPN carrying selected VBN 1 programmes in Spanish, a 7-day schedule.
+
+**VNC site (`vnc.html`)**
+- The static headlines are gone; the site now points to the Newsroom. The old invented headlines (Lancian Recovery Act, eastern governors, Lake Heliosberg fund, Nuelikuz's airfield, the Nicolatian Duma budget, Luisaran road funds, Triumterra talks) now appear as story templates in the Newsroom.
+- Full-day VNC and VRS schedules (weekday, Fyrday, Erday, Sunday variants) with day tabs and an on-air strip. The same full-day engine now drives VBN 1, V3, Radio 1 and Kiss FM.
+- Regional desks, Parliament note (VNC films the Assembly; the Commonwealth Broadcasting Service films Congress), VRS, independence, history.
+
+**VNC Newsroom (`newsroom.vnc.html`)** [INVENTED, rules below]
+- One file, hash-routed pages: Front page, Federation, Commonwealth, Neighbours, Regnum, Sport, Weather & tides, and single story pages. Days can be browsed back seven days.
+- Stories are generated from a seed made of the in-world date, so every reader sees the same stories on the same day. A story is shown only once its timestamp has passed.
+- Canon used: President Zarpaii Xarpeius, Prime Minister Astrid de Lune, Speaker Lorraine Dominguez, Opposition leader Ruy Duca, Commonwealth Prime Minister David Granitseyevich IV, Majority Floor Leader Maricel Dimaculangan, all 26 states and 52 senators (from assembly.html), the Control and Civil Service Commissions, the Federal Electoral Commission and Media Authority, the Constitutional Court, the Lancian Recovery Act, the Mt. Xarpeius Protected Federal Territory, the Dome and Grand Library, Solaria (Union Royale, Travaillistes, the unbuilt Cité-couronne), Nicolatia, Luisara (Dongmyeong Region), the Grenzgebiet tripoint, and Regnum (portal station, Colline, Iles Theoi, Triumterra's black, dark-red and white flag).
+- Deliberately avoided: Valentin Xavier, Valerius's fate, Zavryei II's killer, the Hypogaia annexation year, the state of order after 210, the Treaty of 170, and Earth contact.
+- Invented freely (minor): bill names, vote counts, rates, weather, tides, ferry and rally reports, all sports names.
+- **Kosmos Cup (Newsroom)**: twelve clubs (Xareionople United, Carai Athletic, Latreionople FC, Lancia Sporting, Heliosberg Rovers, Baybay Harbour, Alexagrad Dynamo, Duaterre Rivers, Las Matthias FC, Stadtrand City, Akazie Highlanders, Solaria Royals), 22 rounds, double round robin, one matchday each Erday at 18:40 from the first Erday on or after 1 March, results seeded per season.
+
+**VBN Entertainment (`entertainment.vbn.html`)** [INVENTED]
+- Tonight (VBN 1 and V3, entertainment programmes only, from the same schedules), weekly ratings with movement, a Top Ten, Film of the week with the next three Erday premieres, and three features a day. All fixed by date or week.
+- Programme names are those already in the schedules; artists, songs, film titles and cast are invented.
+
+---
+
+## 6. Tensions with the constitutions
+
+Status after the 18 Oct reconciliation:
+
+1. **Art. 43 public broadcaster.** Settled: VNC is the service (4.5).
+2. **Charter Art. 40, Commonwealth Broadcasting Service.** Settled: separate and joint; Congress sittings go to it (4.5).
+3. **Art. 42 anti-monopoly and media regulator.** Regulator is the **Federal Media Authority** [DECIDED O2]; the corporate site says VBN stays under the audience-share cap and may not own or be owned by a political party.
+4. **Second Republic Art. 27.** Settled: state charter plus private ownership; the Third Republic moved the newsroom into the trust.
+5. **Rule books.** Federal sittings: VNC. Congress sittings: the CBS (Senate Rule 40 ratifies the CBS board).
+6. **Press freedom is not on the non-derogable list** (Latrevian Constitution Art. 32; Charter Art. 38). Still open as a lore point: emergency restriction is possible. The Latreus-era pressure on VBN is the cautionary tale Art. 43 answers.
+7. **Nicolatia.** Settled by O4: a VBN bureau exists under licence with entertainment and a Latrevian-language service, no Nicolatian newsroom, watched by the Committee; NPBC chooses which VBN shows air.
+8. **Dates.** c. 105 PAX is a few years after radio perfected c. 112 PAX (PAX counts down), which fits. VBN Pontes is a Chronicle fact about the news service, not about VBN itself.
+
+---
+
+## 7. Open questions
+
+1. **Whether VNC carries advertising** (4.5 item 1).
+2. **Old poster names:** Helioland, "Western-Central Kosmos" and "Northern Kosmos" map to nothing in canon.
+3. **Finance / Taverné cabinet duplicate** in the Assembly spreadsheet (the Reference suggests it comes from the rule books).
+4. **Next sites:** RVBN is built; V3, LPN and NPBC remain.
+5. **Kosmos Cup:** acceptable as an in-world league? A canon sport tradition?
+6. **VBN Productions:** a page on the corporate site, or stay a card?
+7. **Regnum:** whether a satellite relay or other link ever returns; Valentin, the hostages and the other threads stay open in the Reference.
+8. **Paradeisos:** the Chronicle says only that it governed itself; the sites keep the older name Paradise Colony as an archive nod. One merging line is suggested.
+
+---
+
+## 8. The websites
+
+Single self-contained static HTML files hosted on GitHub Pages under `projectx/kosmos/`. Light and dark themes (stored under `vbn-theme`), live in-world date, embedded Jost and Instrument Serif.
+
+| File | What it is | Links |
+|---|---|---|
+| `vbn.html` | **Main VBN 1 site.** Hero (on now/next), full-day 7-day schedule, ten programme posters, the Kosmos Cup, news (a pointer to VNC plus Compound news), where to watch, and the rest of the family. | `corporate.vbn.html`, `vnc.html`, `newsroom.vnc.html`, `entertainment.vbn.html`, `rvbn.html`. V3 and LPN show "opening soon". |
+| `corporate.vbn.html` | **Corporate site.** Networks, tonight on VBN 1 and V3, radio, where VBN broadcasts, record, structure, the Trust's promises, marks, newsroom. | `vbn.html`, `vnc.html`, `rvbn.html`, `newsroom.vnc.html`, `entertainment.vbn.html`. |
+| `rvbn.html` | **RVBN: Radio 1, Kiss FM and VRS.** Stations, tonight's three schedules with an on-air strip, transmitters, radio history, the VBN family. | `vbn.html`, `corporate.vbn.html`, `vnc.html`, `newsroom.vnc.html`, `entertainment.vbn.html`. |
+| `vnc.html` | **VNC and VRS** (renamed from `vnc.vbn.html`). Full-day schedules with an on-air strip, regional desks, Parliament, VRS, independence, history, link to the Newsroom. | `vbn.html`, `corporate.vbn.html`, `newsroom.vnc.html`, `entertainment.vbn.html`. |
+| `newsroom.vnc.html` | **VNC Newsroom.** Daily generated news, Regnum, sport (Kosmos Cup), weather and tides. | `vnc.html`, `vbn.html`, `entertainment.vbn.html`, `rvbn.html`, `corporate.vbn.html`. |
+| `entertainment.vbn.html` | **VBN Entertainment.** Tonight, ratings, charts, film, features. | `vbn.html`, `vnc.html`, `newsroom.vnc.html`, `rvbn.html`, `corporate.vbn.html`. |
+
+Earlier sites: `latrevia.html`, `executive-palace.html`, `assembly.html`, `congress.html`, `commonwealth.html`, `commonwealth-presidency.html`. The executive palace site now uses Adrastus IV and Gavreel Leioren I and II.
+
+## 9. Source documents consulted
+
+- `Kosmos_Master_Chronicle_reconciled` (Bloodlines, Grand Timeline, Technology, Voices & Phrases, Regnum, Canon Log)
+- `Kosmos_Geography` (Part Five waypoints, Part Seven coordinates)
+- `162_AAX_Latrevian_Constitution` (Arts. 41–43, 4, 17, 32, 37, 40; Appendix III)
+- `Commonwealth_Charter_162_AAX` (Arts. 39–40, Schedule B, Arts. 5, 23, 28, 35–38)
+- `Second_Republic_Constitution_Comprehensive` (Arts. 26–27, retrospective notes, Appendix IV)
+- `Constitution_of_the_Kingdom_of_Solaria_165_AAX` (no media content)
+- `Commonwealth_Congress_Rule_Books`, `Federal_Assembly_Rule_Books` (broadcast of sittings; board confirmation)
+- `Luisara_Government.md`, `Nicolatia_Government.md` (background on LPN's and NPBC's countries)
+- `claude/Senate_Roster_Edit_List.md`, `claude/Commonwealth_Congress_Edit_List.md`, `claude/Commonwealth_Congress_Design_Locked.md` (no VBN content)
