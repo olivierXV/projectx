@@ -9,7 +9,7 @@
 > - **[OPEN]** is undecided.
 >
 > Only the Second Republic Constitution names VBN directly. The Third Republic documents never mention VBN, VNC or VRS, but they do set rules that bear on them (see Part 6). Since 18 Oct the Chronicle and Reference settle most of them (section 4.5).
-> **Renames in force:** Hadrianus is **Adrastus** throughout; LTV is **Lumen Television** (not Laterus); LPN is the **Luisara People's Network**, a private VBN subsidiary; VRS is the **VBN Radio Service**.
+> **Renames in force:** Hadrianus is **Adrastus** throughout; LTV is **Lumen Television**, whose parent company is now **Meridian** (a naming change for real-world reasons, not lore); LPN is the **Luisara People's Network**, a private VBN subsidiary; VRS is the **VBN Radio Service**.
 
 ---
 
@@ -126,6 +126,7 @@ Months: Ixarius, Savrius, Caspius, Helius, Nerius, Kiomus, Epta, Exsilius, Ennia
 
 **Working rules**
 - 19 Oct: the Corporation's radio service "VBN Radio" is renamed **Radio 1** and uses the VBN 1 mark (with a small "Radio" caption). **RVBN** stays as the name of the site that holds all three stations (Radio 1, Kiss FM, VRS). VRS keeps its full name, the VBN Radio Service.
+- 20 Oct: the broadcaster is **Lumen Television** (the old LTV), owned by its parent company **Meridian**, renamed for real-world reasons. Lumen went off air once VBN returned to broadcasting and has no further use; Meridian has no incentive to enter television unless it becomes a competitor. No Lumen site is planned; it stays in the history. VBN still used it to get programmes past Latreus's shutters, as the corporate site says. Naming change only; no in-lore reason.
 - Do not save .md files unless told to. (This file was made at your request and is not saved to the project.)
 
 ---
