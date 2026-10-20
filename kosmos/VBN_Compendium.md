@@ -223,8 +223,13 @@ The Trust's three promises, as written on the corporate site [INVENTED]: no appo
 - **Kosmos Cup (Newsroom)**: twelve clubs (Xareionople United, Carai Athletic, Latreionople FC, Lancia Sporting, Heliosberg Rovers, Baybay Harbour, Alexagrad Dynamo, Duaterre Rivers, Las Matthias FC, Stadtrand City, Akazie Highlanders, Solaria Royals), 22 rounds, double round robin, one matchday each Erday at 18:40 from the first Erday on or after 1 March, results seeded per season.
 
 **VBN Entertainment (`entertainment.vbn.html`)** [INVENTED]
-- Tonight (VBN 1 and V3, entertainment programmes only, from the same schedules), weekly ratings with movement, a Top Ten, Film of the week with the next three Erday premieres, and three features a day. All fixed by date or week.
-- Programme names are those already in the schedules; artists, songs, film titles and cast are invented.
+- Pages: Tonight (top stories, full-day VBN 1 and V3 entertainment line-up, side boxes), Showbiz news, Gossip desk, Ratings, Top Ten, Film of the week, and story pages. Everything is fixed by date or week.
+- Stories are 6 to 8 blocks long: lede paragraphs, "Earlier" context, a pull-quote, a Background box, a second reaction and "What next". Some run over several days as arcs.
+- A fixed invented cast (about 30 actors, presenters and singers, each tied to a real programme) is used by every story; no real-world people appear. Programme names are those in the schedules.
+- **Gossip arcs**: the on-air confession (an actor tells The Hour that a mayor gave her an infection and threatened to expose it, then the mayor's denial, ratings, media complaints, a week-on piece), a co-star feud, a presenter's exit, a secret wedding and a band's split.
+- **Rule**: gossip never covers officials or elected politicians. Their affairs are reported by the VNC Newsroom.
+
+**Newsroom arcs (added 20 Oct)**: stories that run over several days, with the same people each day: a senator's travel-claims inquiry (Control Commission), a leaked ministry memo, a bill's passage from introduction to the President's signature, and the mayor affair that mirrors the Entertainment confession arc (same dates, same people: the actor on VBN Entertainment, the mayor and the media complaints in the Newsroom). Senators are real lore names from `assembly.html`; the President and both Prime Ministers appear only in neutral roles, not in scandals.
 
 ---
 
