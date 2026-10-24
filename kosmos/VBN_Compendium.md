@@ -298,3 +298,5 @@ Parity (Oct 166 AAX): every VBN-family page now links all the others in its foot
 - `Commonwealth_Congress_Rule_Books`, `Federal_Assembly_Rule_Books` (broadcast of sittings; board confirmation)
 - `Luisara_Government.md`, `Nicolatia_Government.md` (background on LPN's and NPBC's countries)
 - `claude/Senate_Roster_Edit_List.md`, `claude/Commonwealth_Congress_Edit_List.md`, `claude/Commonwealth_Congress_Design_Locked.md` (no VBN content)
+
+Favicons (Oct 166 AAX): all 16 sites carry an inline SVG favicon plus a PNG apple-touch icon, built by `pfav.py` from each site's own mark. VBN family: VBN blue (VBN 1), black with blue bar (Corporation), pink (Entertainment), cyan Radio 1 (RVBN), black VNC (VNC; red dot for the Newsroom), pink-orange gradient (V3). LTV: black LTV (red dot for News, green for Sport). Federal: gold dome on navy (Assembly), gold palace (Latrevia), white palace (Executive Palace). Commonwealth: cream dome on dark navy (Commonwealth), gold dome on blue (Congress), gold star on blue (Presidency).
